@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق أوراد - وردك اليومي وأذكارك</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Amiri and Cairo for Arabic elegance -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        amiri: ['Amiri', 'serif'],
+                    },
+                    colors: {
+                        islamic: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                            gold: '#d97706',
+                            darkGold: '#b45309',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+        .quran-font {
+            font-family: 'Amiri', serif;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #059669;
+            border-radius: 3px;
+        }
+        .pulse-subtle {
+            animation: pulseSubtle 2s infinite;
+        }
+        @keyframes pulseSubtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-islamic-500 selection:text-white">
+
+    <header class="bg-islamic-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 rounded-full bg-islamic-gold flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-book-quran text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold font-amiri tracking-wide">تطبيق أوراد</h1>
+                    <p class="text-xs text-islamic-gold font-semibold">أبنا الفكي الأمين ود أم حقين</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 space-x-reverse">
+                <!-- Points Badge in Header -->
+                <div class="bg-islamic-800/90 border border-islamic-600 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-islamic-gold font-bold text-xs shadow-inner">
+                    <i class="fa-solid fa-coins"></i>
+                    <span id="headerPoints">0</span> نقطة
+                </div>
+                <button onclick="openSettings()" class="p-2 rounded-full hover:bg-islamic-800 transition text-islamic-100 hover:text-white" title="الإعدادات">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                </button>
+                <button onclick="openStats()" class="p-2 rounded-full hover:bg-islamic-800 transition text-islamic-100 hover:text-white" title="الإحصائيات">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 pb-24">
+        
+        <!-- Hero Section with Points & Streak -->
+        <section class="bg-gradient-to-r from-islamic-800 to-islamic-900 rounded-2xl p-6 text-white shadow-xl mb-6 relative overflow-hidden">
+            <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-islamic-700 rounded-full opacity-25 pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-islamic-gold text-white text-xs px-3 py-1 rounded-full font-semibold shadow-sm">الإنجاز اليومي والنقاط</span>
+                        <span class="bg-white/10 backdrop-blur-sm text-islamic-100 text-xs px-3 py-1 rounded-full border border-white/10" id="userLevelBadge">المستوى: مبتدئ</span>
+                    </div>
+                    <h2 class="text-2xl font-bold font-amiri" id="todayHijriDate">جارِ تحميل التاريخ...</h2>
+                    <p class="text-islamic-100 text-sm mt-1">"اجمع النقاط مع كل طاعة، وخير الأعمال أدومها وإن قلّ"</p>
+                </div>
+                <div class="flex items-center gap-4 bg-islamic-800/80 px-5 py-3 rounded-xl border border-islamic-700/50 backdrop-blur-sm w-full md:w-auto justify-between">
+                    <div>
+                        <div class="text-xs text-islamic-100 opacity-80">نقاط اليوم الإجمالية</div>
+                        <div class="text-2xl font-bold text-islamic-gold"><span id="dailyTotalPoints">0</span> <span class="text-xs text-white">نقطة</span></div>
+                    </div>
+                    <div class="w-12 h-12 rounded-full border-4 border-islamic-600 border-t-islamic-gold flex items-center justify-center font-bold text-sm" id="progressCircleText">
+                        0/4
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation Tabs -->
+        <div class="flex bg-white p-1.5 rounded-2xl shadow-sm mb-6 border border-slate-100 overflow-x-auto">
+            <button onclick="switchTab('wird')" id="tab-wird" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm">
+                <i class="fa-solid fa-book-open"></i> الإنجاز اليومي
+            </button>
+            <button onclick="switchTab('adhkar')" id="tab-adhkar" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-sun"></i> الأذكار
+            </button>
+            <button onclick="switchTab('tasbih')" id="tab-tasbih" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-hand-pointer"></i> المسبحة
+            </button>
+            <button onclick="switchTab('duaa')" id="tab-duaa" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-hands-praying"></i> الأدعية
+            </button>
+        </div>
+
+        <div id="content-wird" class="tab-content space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-islamic-600"></i> الإنجاز اليومي (اكسب 50 نقطة لكل إنجاز)
+                </h3>
+                <button onclick="resetWird()" class="text-xs text-islamic-600 hover:underline font-medium">إعادة تعيين الإنجازات</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="wirdList">
+                <!-- Wird cards injected via JS -->
+            </div>
+        </div>
+
+        <div id="content-adhkar" class="tab-content hidden space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <button onclick="loadAdhkarCategory('morning')" id="btn-morning" class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-bold flex items-center justify-center gap-2 transition hover:bg-amber-100 shadow-sm">
+                    <i class="fa-solid fa-sun text-amber-600 text-xl"></i> أذكار الصباح
+                </button>
+                <button onclick="loadAdhkarCategory('evening')" id="btn-evening" class="p-4 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold flex items-center justify-center gap-2 transition hover:bg-indigo-100 shadow-sm">
+                    <i class="fa-solid fa-moon text-indigo-600 text-xl"></i> أذكار المساء
+                </button>
+                <button onclick="loadAdhkarCategory('sleep')" id="btn-sleep" class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-bold flex items-center justify-center gap-2 transition hover:bg-purple-100 shadow-sm">
+                    <i class="fa-solid fa-bed text-purple-600 text-xl"></i> أذكار النوم
+                </button>
+            </div>
+
+            <div id="adhkarContainer" class="space-y-4">
+                <!-- Adhkar items injected here -->
+            </div>
+        </div>
+
+        <div id="content-tasbih" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center max-w-md mx-auto">
+                <div class="flex justify-center mb-4">
+                    <select id="tasbihType" onchange="changeTasbihTarget()" class="bg-slate-100 border border-slate-200 text-slate-700 py-2 px-4 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-islamic-500">
+                        <option value="سبحان الله">سبحان الله (33)</option>
+                        <option value="الحمد لله">الحمد لله (33)</option>
+                        <option value="الله أكبر">الله أكبر (34)</option>
+                        <option value="لا إله إلا الله وحدها لا شريك له">لا إله إلا الله (100)</option>
+                        <option value="استغفر الله العظيم">استغفر الله العظيم (100)</option>
+                        <option value="صلى الله على محمد">الصلاة على النبي (100)</option>
+                    </select>
+                </div>
+
+                <!-- Big Interactive Counter Button -->
+                <div class="relative my-8 flex justify-center">
+                    <button onclick="incrementCounter()" class="w-56 h-56 rounded-full bg-gradient-to-b from-islamic-500 to-islamic-700 text-white shadow-xl hover:shadow-2xl active:scale-95 transition flex flex-col items-center justify-center border-4 border-islamic-100 pulse-subtle group select-none">
+                        <span class="text-6xl font-black font-amiri" id="counterValue">0</span>
+                        <span class="text-xs uppercase tracking-widest opacity-80 mt-1" id="counterTargetLabel">من 33</span>
+                        <span class="text-xs bg-islamic-800/40 px-3 py-1 rounded-full mt-3 group-hover:bg-islamic-800 transition">انقر للتسبيح (+1 نقطة)</span>
+                    </button>
+                </div>
+
+                <div class="flex justify-center gap-3">
+                    <button onclick="resetCounter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right"></i> تصفير
+                    </button>
+                    <button onclick="vibrateDevice()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-mobile-screen-button"></i> الاهتزاز
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-duaa" class="tab-content hidden space-y-4">
+            <h3 class="font-bold text-lg text-slate-800 mb-2 flex items-center gap-2">
+                <i class="fa-solid fa-hands-praying text-islamic-600"></i> جوامع الدعاء والأدعية القرآنية
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="duaaList">
+                <!-- Duaa cards injected here -->
+            </div>
+        </div>
+
+    </main>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-3 text-sm">
+        <i class="fa-solid fa-circle-check text-islamic-500 text-lg"></i>
+        <span id="toastMessage">تم الحفظ بنجاح</span>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800">إعدادات التطبيق</h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer">
+                    <span class="font-medium text-slate-700">التنبيهات اليومية (تذكير)</span>
+                    <input type="checkbox" id="settingNotifications" class="w-5 h-5 accent-islamic-600 rounded" checked onchange="saveSettings()">
+                </label>
+                <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer">
+                    <span class="font-medium text-slate-700">الاهتزاز عند التسبيح</span>
+                    <input type="checkbox" id="settingVibrate" class="w-5 h-5 accent-islamic-600 rounded" checked onchange="saveSettings()">
+                </label>
+                <div class="pt-2">
+                    <button onclick="exportUserData()" class="w-full bg-islamic-50 hover:bg-islamic-100 text-islamic-800 font-semibold py-2.5 rounded-xl transition text-center text-sm">
+                        <i class="fa-solid fa-download ml-1"></i> تصدير البيانات والورد
+                    </button>
+                </div>
+            </div>
+            <div class="pt-2">
+                <button onclick="closeSettings()" class="w-full bg-islamic-900 hover:bg-islamic-800 text-white font-semibold py-2.5 rounded-xl transition">
+                    تم
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800">إحصائيات النقاط والجوائز</h3>
+                <button onclick="closeStats()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-center py-2">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                    <div class="text-3xl font-extrabold text-amber-600 font-amiri"><span id="statsTotalPoints">0</span> نقطة</div>
+                    <div class="text-xs text-slate-600 mt-1" id="statsUserLevelDesc">مستوى الحافظ المبتدئ</div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="text-xl font-bold text-slate-800" id="statsTotalTasbih">0</div>
+                        <div class="text-xs text-slate-500">إجمالي التسبيحات</div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="text-xl font-bold text-slate-800" id="statsWirdDone">0/4</div>
+                        <div class="text-xs text-slate-500">أجزاء الإنجاز المنجزة</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button onclick="closeStats()" class="w-full bg-islamic-900 hover:bg-islamic-800 text-white font-semibold py-2.5 rounded-xl transition">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Application State with Points System & precise Wird list
+        let appState = {
+            totalPoints: 0,
+            streakDays: 3,
+            totalTasbihAllTime: 0,
+            tasbihCount: 0,
+            tasbihTarget: 33,
+            currentTasbihKey: 'سبحان الله',
+            wird: [
+                { id: 1, title: 'ورد سورة البقرة', desc: 'قراءة صفحتين من سورة البقرة المباركة (+50 نقطة)', completed: false, points: 50 },
+                { id: 2, title: 'ورد سورة يس', desc: 'قراءة سورة يس المباركة يومياً (+50 نقطة)', completed: false, points: 50 },
+                { id: 3, title: 'ورد التسبيح', desc: 'إتمام ورد التسبيح والاستغفار اليومي (+50 نقطة)', completed: false, points: 50 },
+                { id: 4, title: 'ورد الصلاة على النبي', desc: 'الصلاة والسلام على نبينا محمد ﷺ 100 مرة (+50 نقطة)', completed: false, points: 50 }
+            ],
+            settings: {
+                notifications: true,
+                vibrate: true
+            }
+        };
+
+        // Adhkar Database
+        const adhkarData = {
+            morning: [
+                { text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 1, current: 0 },
+                { text: 'اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.', count: 1, current: 0 },
+                { text: 'آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 },
+                { text: 'سورة الإخلاص والمعوذتين (ثلاث مرات)', count: 3, current: 0 },
+                { text: 'رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.', count: 3, current: 0 }
+            ],
+            evening: [
+                { text: 'أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 1, current: 0 },
+                { text: 'اللهم بك أمسينا وبك أصبحنا، وبك نحيا وبك نموت وإليك المصير.', count: 1, current: 0 },
+                { text: 'آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 },
+                { text: 'سورة الإخلاص والمعوذتين (ثلاث مرات)', count: 3, current: 0 },
+                { text: 'اللهم ما أمسى بي من نعمة أو بأحد من خلقك فمنك وحدك لا شريك لك.', count: 1, current: 0 }
+            ],
+            sleep: [
+                { text: 'باسْمِكَ رَبِّ وضَعْتُ جَنْبي، وبِكَ أَرْفَعُهُ، إنْ أَمْسَكْتَ نَفْسي فارْحَمْها، وإنْ أَرْسَلْتَها فاحْفَظْها بما تَحْفَظُ به عِبادَكَ الصَّالِحينَ.', count: 1, current: 0 },
+                { text: 'جمع كفيه ثم نفث فيهما وقرأ: قل هو الله أحد، وقل أعوذ برب الفلق، وقل أعوذ برب الناس (ثلاث مرات).', count: 3, current: 0 },
+                { text: 'قراءة آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 }
+            ]
+        };
+
+        // Duaa Database
+        const duaaData = [
+            { title: 'دعاء جامع للخير', text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ' },
+            { title: 'دعاء الثبات على الدين', text: 'رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ' },
+            { title: 'دعاء الغفران والتوبة', text: 'رَبَّنَا اغْفِرْ لَنَا ذُنُوبَنَا وَإِسْرَافَنَا فِي أَمْرِنَا وَثَبِّتْ أَقْدَامَنَا وَانْصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ' },
+            { title: 'دعاء تيسير الأمور', text: 'رَبِّ اشْرَحْ لي صَدْرِي وَيَسِّرْ لي أَمْرِي وَاحْلُلْ عُقْدَةً مِنْ لِسَانِي يَفْقَهُوا قَوْلِي' }
+        ];
+
+        window.onload = function() {
+            loadSavedData();
+            updateHijriDate();
+            renderWird();
+            loadAdhkarCategory('morning');
+            renderDuaa();
+            updateProgressStats();
+        };
+
+        function updateHijriDate() {
+            try {
+                const options = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
+                const todayStr = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', options).format(new Date());
+                document.getElementById('todayHijriDate').innerText = todayStr;
+            } catch (e) {
+                document.getElementById('todayHijriDate').innerText = 'الأربعاء ١٥ رجب ١٤٤٧ هـ';
+            }
+        }
+
+        function switchTab(tabId) {
+            const tabs = ['wird', 'adhkar', 'tasbih', 'duaa'];
+            tabs.forEach(t => {
+                const content = document.getElementById(`content-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabId) {
+                    if(content) content.classList.remove('hidden');
+                    if(btn) btn.className = "flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm";
+                } else {
+                    if(content) content.classList.add('hidden');
+                    if(btn) btn.className = "flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50";
+                }
+            });
+        }
+
+        // Render Wird List with precise 4 items
+        function renderWird() {
+            const container = document.getElementById('wirdList');
+            if(!container) return;
+            container.innerHTML = '';
+            appState.wird.forEach(item => {
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border transition flex items-center justify-between gap-3 ${item.completed ? 'bg-islamic-50/60 border-islamic-200' : 'bg-white border-slate-100 shadow-sm'}`;
+                card.innerHTML = `
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleWird(${item.id})" class="mt-1 w-5 h-5 accent-islamic-600 rounded cursor-pointer">
+                        <div>
+                            <h4 class="font-bold text-slate-800 ${item.completed ? 'line-through text-slate-400' : ''}">${item.title}</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">${item.desc}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs px-2.5 py-1 rounded-full font-medium ${item.completed ? 'bg-islamic-100 text-islamic-800' : 'bg-amber-50 text-amber-800'}">
+                        ${item.completed ? '+50 نقطة مكتسبة' : '+50 نقطة'}
+                    </span>
+                `;
+                container.appendChild(card);
+            });
+            updateProgressStats();
+        }
+
+        function toggleWird(id) {
+            const item = appState.wird.find(w => w.id === id);
+            if (item) {
+                item.completed = !item.completed;
+                if (item.completed) {
+                    appState.totalPoints += 50;
+                    showToast(`أحسنت! كسبت 50 نقطة لإتمام ${item.title}`);
+                } else {
+                    appState.totalPoints = Math.max(0, appState.totalPoints - 50);
+                    showToast('تم إلغاء تحديد الإنجاز وخصم النقاط');
+                }
+                saveData();
+                renderWird();
+            }
+        }
+
+        function resetWird() {
+            let pointsToSubtract = 0;
+            appState.wird.forEach(w => {
+                if (w.completed) pointsToSubtract += 50;
+                w.completed = false;
+            });
+            appState.totalPoints = Math.max(0, appState.totalPoints - pointsToSubtract);
+            saveData();
+            renderWird();
+            showToast('تم إعادة تعيين الإنجازات اليومية');
+        }
+
+        // Adhkar Category Loader
+        function loadAdhkarCategory(cat) {
+            ['morning', 'evening', 'sleep'].forEach(c => {
+                const btn = document.getElementById(`btn-${c}`);
+                if (btn) {
+                    if (c === cat) {
+                        btn.classList.add('ring-2', 'ring-offset-2', 'ring-islamic-500');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-offset-2', 'ring-islamic-500');
+                    }
+                }
+            });
+
+            const container = document.getElementById('adhkarContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            adhkarData[cat].forEach((dhikr, index) => {
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col gap-3 transition ${dhikr.current >= dhikr.count ? 'opacity-60 bg-slate-50' : ''}`;
+                card.innerHTML = `
+                    <p class="text-slate-800 quran-font text-lg leading-relaxed">${dhikr.text}</p>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-50">
+                        <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">العدد المطلوب: ${dhikr.count} (تكسب نقطتين لكل ذكر)</span>
+                        <button onclick="decrementDhikr('${cat}', ${index})" class="px-4 py-1.5 rounded-xl bg-islamic-600 hover:bg-islamic-700 text-white font-bold text-sm transition shadow-sm active:scale-95 flex items-center gap-1.5">
+                            <span>متبقي: ${dhikr.count - dhikr.current}</span>
+                            <i class="fa-solid fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function decrementDhikr(cat, index) {
+            const dhikr = adhkarData[cat][index];
+            if (dhikr && dhikr.current < dhikr.count) {
+                dhikr.current++;
+                appState.totalPoints += 2; // 2 points per dhikr tap
+                appState.totalTasbihAllTime++;
+                if (appState.settings.vibrate && navigator.vibrate) {
+                    navigator.vibrate(30);
+                }
+                saveData();
+                loadAdhkarCategory(cat);
+                updateProgressStats();
+            }
+        }
+
+        // Tasbih Digital Counter Controller (+1 point per click)
+        const tasbihTargets = {
+            'سبحان الله': 33,
+            'الحمد لله': 33,
+            'الله أكبر': 34,
+            'لا إله إلا الله وحدها لا شريك له': 100,
+            'استغفر الله العظيم': 100,
+            'صلى الله على محمد': 100
+        };
+
+        function changeTasbihTarget() {
+            const select = document.getElementById('tasbihType');
+            if(select) {
+                appState.currentTasbihKey = select.value;
+                appState.tasbihTarget = tasbihTargets[appState.currentTasbihKey] || 33;
+                appState.tasbihCount = 0;
+                updateTasbihDisplay();
+            }
+        }
+
+        function incrementCounter() {
+            appState.tasbihCount++;
+            appState.totalTasbihAllTime++;
+            appState.totalPoints += 1; // +1 point per tasbih tap
+            if (appState.settings.vibrate && navigator.vibrate) {
+                navigator.vibrate(40);
+            }
+            saveData();
+            updateTasbihDisplay();
+            updateProgressStats();
+        }
+
+        function resetCounter() {
+            appState.tasbihCount = 0;
+            updateTasbihDisplay();
+            showToast('تم تصفير العداد');
+        }
+
+        function updateTasbihDisplay() {
+            const valEl = document.getElementById('counterValue');
+            const targetEl = document.getElementById('counterTargetLabel');
+            if(valEl) valEl.innerText = appState.tasbihCount;
+            if(targetEl) targetEl.innerText = `من ${appState.tasbihTarget}`;
+        }
+
+        function vibrateDevice() {
+            if (navigator.vibrate) {
+                navigator.vibrate([50, 50, 50]);
+                showToast('تم اختبار الاهتزاز بنجاح');
+            } else {
+                showToast('خاصية الاهتزاز غير مدعومة في متصفحك');
+            }
+        }
+
+        // Render Duaa List
+        function renderDuaa() {
+            const container = document.getElementById('duaaList');
+            if(!container) return;
+            container.innerHTML = '';
+            duaaData.forEach((duaa) => {
+                const card = document.createElement('div');
+                card.className = 'p-5 rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col justify-between gap-3';
+                card.innerHTML = `
+                    <div>
+                        <h4 class="font-bold text-islamic-800 text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-star text-islamic-gold text-xs"></i> ${duaa.title}
+                        </h4>
+                        <p class="text-slate-700 quran-font text-lg leading-loose">${duaa.text}</p>
+                    </div>
+                    <div class="flex justify-end pt-2">
+                        <button onclick="copyDuaa('${duaa.text}')" class="text-xs text-islamic-600 hover:text-islamic-800 font-semibold flex items-center gap-1 bg-islamic-50 px-3 py-1.5 rounded-xl transition">
+                            <i class="fa-regular fa-copy"></i> نسخ الدعاء
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copyDuaa(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('تم نسخ الدعاء إلى الحافظة');
+            } catch (err) {
+                showToast('تعذر النسخ');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Overall Progress & Points Stats Calculator
+        function updateProgressStats() {
+            const completedCount = appState.wird.filter(w => w.completed).length;
+            const totalCount = appState.wird.length;
+            const percent = Math.round((completedCount / totalCount) * 100);
+
+            // Update DOM Elements
+            const headerPoints = document.getElementById('headerPoints');
+            const dailyTotalPoints = document.getElementById('dailyTotalPoints');
+            const statsTotalPoints = document.getElementById('statsTotalPoints');
+            const cp = document.getElementById('completionPercentage');
+            const pctText = document.getElementById('progressCircleText');
+            const swDone = document.getElementById('statsWirdDone');
+            const totTasb = document.getElementById('statsTotalTasbih');
+            const userLevelBadge = document.getElementById('userLevelBadge');
+            const statsUserLevelDesc = document.getElementById('statsUserLevelDesc');
+
+            if(headerPoints) headerPoints.innerText = appState.totalPoints;
+            if(dailyTotalPoints) dailyTotalPoints.innerText = appState.totalPoints;
+            if(statsTotalPoints) statsTotalPoints.innerText = appState.totalPoints;
+            if(cp) cp.innerText = `${percent}%`;
+            if(pctText) pctText.innerText = `${completedCount}/${totalCount}`;
+            if(swDone) swDone.innerText = `${completedCount}/${totalCount}`;
+            if(totTasb) totTasb.innerText = appState.totalTasbihAllTime;
+
+            // Determine level based on points
+            let levelTitle = "المستوى: مبتدئ ذو همة";
+            if (appState.totalPoints >= 300) levelTitle = "المستوى: حافظ متقدم";
+            else if (appState.totalPoints >= 150) levelTitle = "المستوى: ذاكر نشط";
+            
+            if(userLevelBadge) userLevelBadge.innerText = levelTitle;
+            if(statsUserLevelDesc) statsUserLevelDesc.innerText = levelTitle;
+        }
+
+        // Modals Management
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            if(modal) modal.classList.remove('hidden');
+        }
+        function closeSettings() {
+            const modal = document.getElementById('settingsModal');
+            if(modal) modal.classList.add('hidden');
+        }
+        function openStats() {
+            updateProgressStats();
+            const modal = document.getElementById('statsModal');
+            if(modal) modal.classList.remove('hidden');
+        }
+        function closeStats() {
+            const modal = document.getElementById('statsModal');
+            if(modal) modal.classList.add('hidden');
+        }
+
+        // Local Storage & Backup
+        function saveData() {
+            try {
+                localStorage.setItem('awrad_app_state', JSON.stringify(appState));
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function loadSavedData() {
+            try {
+                const saved = localStorage.getItem('awrad_app_state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appState = { ...appState, ...parsed };
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function saveSettings() {
+            const notifEl = document.getElementById('settingNotifications');
+            const vibEl = document.getElementById('settingVibrate');
+            if(notifEl) appState.settings.notifications = notifEl.checked;
+            if(vibEl) appState.settings.vibrate = vibEl.checked;
+            saveData();
+            showToast('تم حفظ الإعدادات بنجاح');
+        }
+
+        function exportUserData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "awrad_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast('تم تصدير ملف البيانات بنجاح');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toastMessage');
+            if(toast && msgSpan) {
+                msgSpan.innerText = message;
+                toast.classList.remove('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'pointer-events-none');
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
