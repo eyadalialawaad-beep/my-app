@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تطبيق أوراد - وردك اليومي وأذكارك</title>
     <!-- Tailwind CSS for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -36,202 +36,231 @@
         }
     </script>
     <style>
-        * {
-            box-sizing: border-box;
-        }
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f1f5f9;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            overflow-x: hidden;
+            background-color: #f8fafc;
         }
         .quran-font {
             font-family: 'Amiri', serif;
         }
         ::-webkit-scrollbar {
-            width: 4px;
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #059669;
+            border-radius: 3px;
+        }
+        .pulse-subtle {
+            animation: pulseSubtle 2s infinite;
+        }
+        @keyframes pulseSubtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col selection:bg-islamic-500 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col selection:bg-islamic-500 selection:text-white">
 
-    <!-- Header بدون حواف جانبية -->
-    <header class="bg-islamic-900 text-white shadow-md sticky top-0 z-50 w-full">
-        <div class="w-full px-4 py-3 flex justify-between items-center">
+    <header class="bg-islamic-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex flex-col sm:flex-row justify-between items-center gap-2">
             <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-9 h-9 rounded-full bg-islamic-gold flex items-center justify-center text-white shadow">
-                    <i class="fa-solid fa-book-quran text-lg"></i>
+                <div class="w-10 h-10 rounded-full bg-islamic-gold flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid fa-book-quran text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold font-amiri tracking-wide">تطبيق أوراد</h1>
-                    <p class="text-[10px] text-islamic-gold font-semibold">أبنا الفكي الأمين ود أم حقين</p>
+                    <h1 class="text-xl font-bold font-amiri tracking-wide">تطبيق أوراد</h1>
+                    <p class="text-xs text-islamic-gold font-semibold">أبنا الفكي الأمين ود أم حقين</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 space-x-reverse">
-                <div class="bg-islamic-800 border border-islamic-600 px-3 py-1 rounded-lg flex items-center gap-1.5 text-islamic-gold font-bold text-xs">
+                <div class="bg-islamic-800/90 border border-islamic-600 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-islamic-gold font-bold text-xs shadow-inner">
                     <i class="fa-solid fa-coins"></i>
                     <span id="headerPoints">0</span> نقطة
                 </div>
-                <button onclick="openSettings()" class="p-2 text-islamic-100 hover:text-white" title="الإعدادات">
-                    <i class="fa-solid fa-gear text-base"></i>
+                <button onclick="openSettings()" class="p-2 rounded-full hover:bg-islamic-800 transition text-islamic-100 hover:text-white" title="الإعدادات">
+                    <i class="fa-solid fa-gear text-lg"></i>
                 </button>
-                <button onclick="openStats()" class="p-2 text-islamic-100 hover:text-white" title="الإحصائيات">
-                    <i class="fa-solid fa-chart-pie text-base"></i>
+                <button onclick="openStats()" class="p-2 rounded-full hover:bg-islamic-800 transition text-islamic-100 hover:text-white" title="الإحصائيات">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content: صفحة واحدة متصلة بلا حواف خارجية -->
-    <main class="flex-1 w-full pb-20 space-y-4">
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 pb-24">
         
-        <!-- بطاقة الترحيب والتاريخ -->
-        <section class="bg-gradient-to-r from-islamic-800 to-islamic-900 p-5 text-white shadow-md w-full">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <section class="bg-gradient-to-r from-islamic-800 to-islamic-900 rounded-2xl p-6 text-white shadow-xl mb-6 relative overflow-hidden">
+            <div class="absolute -left-10 -bottom-10 w-40 h-40 bg-islamic-700 rounded-full opacity-25 pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="bg-islamic-gold text-white text-[11px] px-2.5 py-0.5 rounded-full font-semibold">الإنجاز اليومي والنقاط</span>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-islamic-gold text-white text-xs px-3 py-1 rounded-full font-semibold shadow-sm">الإنجاز اليومي والنقاط</span>
+                        <span class="bg-white/10 backdrop-blur-sm text-islamic-100 text-xs px-3 py-1 rounded-full border border-white/10" id="userLevelBadge">المستوى: مبتدئ</span>
                     </div>
-                    <h2 class="text-xl font-bold font-amiri" id="todayHijriDate">جارِ تحميل التاريخ...</h2>
-                    <p class="text-islamic-100 text-xs mt-0.5">"اجمع النقاط مع كل طاعة، وخير الأعمال أدومها وإن قلّ"</p>
+                    <h2 class="text-2xl font-bold font-amiri" id="todayHijriDate">جارِ تحميل التاريخ...</h2>
+                    <p class="text-islamic-100 text-sm mt-1">"اجمع النقاط مع كل طاعة، وخير الأعمال أدومها وإن قلّ"</p>
                 </div>
-                <div class="flex items-center gap-3 bg-islamic-800/90 px-4 py-2.5 rounded-xl border border-islamic-700 w-full sm:w-auto justify-between">
+                <div class="flex items-center gap-4 bg-islamic-800/80 px-5 py-3 rounded-xl border border-islamic-700/50 backdrop-blur-sm w-full md:w-auto justify-between">
                     <div>
-                        <div class="text-[11px] text-islamic-100 opacity-80">نقاط اليوم الإجمالية</div>
-                        <div class="text-xl font-bold text-islamic-gold"><span id="dailyTotalPoints">0</span> <span class="text-xs text-white">نقطة</span></div>
+                        <div class="text-xs text-islamic-100 opacity-80">نقاط اليوم الإجمالية</div>
+                        <div class="text-2xl font-bold text-islamic-gold"><span id="dailyTotalPoints">0</span> <span class="text-xs text-white">نقطة</span></div>
                     </div>
-                    <div class="w-10 h-10 rounded-full border-2 border-islamic-600 border-t-islamic-gold flex items-center justify-center font-bold text-xs" id="progressCircleText">
+                    <div class="w-12 h-12 rounded-full border-4 border-islamic-600 border-t-islamic-gold flex items-center justify-center font-bold text-sm" id="progressCircleText">
                         0/4
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- القسم الأول: الإنجاز اليومي -->
-        <section id="section-wird" class="bg-white p-4 shadow-sm border-y border-slate-200 w-full">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-bookmark text-islamic-600"></i> الإنجاز اليومي (50 نقطة لكل إنجاز)
+        <!-- Navigation Tabs -->
+        <div class="flex bg-white p-1.5 rounded-2xl shadow-sm mb-6 border border-slate-100 overflow-x-auto gap-1">
+            <button onclick="switchTab('wird')" id="tab-wird" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm">
+                <i class="fa-solid fa-book-open"></i> الإنجاز اليومي
+            </button>
+            <button onclick="switchTab('adhkar')" id="tab-adhkar" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-sun"></i> الأذكار
+            </button>
+            <button onclick="switchTab('tasbih')" id="tab-tasbih" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-hand-pointer"></i> المسبحة
+            </button>
+            <button onclick="switchTab('duaa')" id="tab-duaa" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+                <i class="fa-solid fa-hands-praying"></i> الأدعية
+            </button>
+        </div>
+
+        <!-- 1. Wird Tab Content -->
+        <div id="content-wird" class="tab-content space-y-4">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-bookmark text-islamic-600"></i> الإنجاز اليومي (اكسب 50 نقطة لكل إنجاز)
                 </h3>
-                <button onclick="resetWird()" class="text-xs text-islamic-600 hover:underline font-medium">إعادة تعيين</button>
+                <button onclick="resetWird()" class="text-xs text-islamic-600 hover:underline font-medium">إعادة تعيين الإنجازات</button>
             </div>
-            <div class="grid grid-cols-1 gap-3" id="wirdList"></div>
-        </section>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="wirdList"></div>
+        </div>
 
-        <!-- القسم الثاني: الأذكار -->
-        <section id="section-adhkar" class="bg-white p-4 shadow-sm border-y border-slate-200 w-full">
-            <h3 class="font-bold text-base text-slate-800 mb-3 flex items-center gap-2">
-                <i class="fa-solid fa-sun text-islamic-600"></i> حصن المسلم والأذكار اليومية
-            </h3>
-            <div class="grid grid-cols-3 gap-2 mb-4">
-                <button onclick="loadAdhkarCategory('morning')" id="btn-morning" class="py-2.5 px-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-sun text-amber-600"></i> الصباح
+        <!-- 2. Adhkar Tab Content -->
+        <div id="content-adhkar" class="tab-content hidden space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                <button onclick="loadAdhkarCategory('morning')" id="btn-morning" class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-bold flex items-center justify-center gap-2 transition hover:bg-amber-100 shadow-sm">
+                    <i class="fa-solid fa-sun text-amber-600 text-xl"></i> أذكار الصباح
                 </button>
-                <button onclick="loadAdhkarCategory('evening')" id="btn-evening" class="py-2.5 px-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-moon text-indigo-600"></i> المساء
+                <button onclick="loadAdhkarCategory('evening')" id="btn-evening" class="p-4 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold flex items-center justify-center gap-2 transition hover:bg-indigo-100 shadow-sm">
+                    <i class="fa-solid fa-moon text-indigo-600 text-xl"></i> أذكار المساء
                 </button>
-                <button onclick="loadAdhkarCategory('sleep')" id="btn-sleep" class="py-2.5 px-2 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-bed text-purple-600"></i> النوم
+                <button onclick="loadAdhkarCategory('sleep')" id="btn-sleep" class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-bold flex items-center justify-center gap-2 transition hover:bg-purple-100 shadow-sm">
+                    <i class="fa-solid fa-bed text-purple-600 text-xl"></i> أذكار النوم
                 </button>
             </div>
-            <div id="adhkarContainer" class="space-y-3"></div>
-        </section>
+            <div id="adhkarContainer" class="space-y-4"></div>
+        </div>
 
-        <!-- القسم الثالث: المسبحة -->
-        <section id="section-tasbih" class="bg-white p-4 shadow-sm border-y border-slate-200 w-full text-center">
-            <h3 class="font-bold text-base text-slate-800 mb-3 flex items-center gap-2 justify-start">
-                <i class="fa-solid fa-hand-pointer text-islamic-600"></i> المسبحة الإلكترونية
-            </h3>
-            <div class="flex justify-center mb-4">
-                <select id="tasbihType" onchange="changeTasbihTarget()" class="bg-slate-100 border border-slate-200 text-slate-700 py-2 px-3 rounded-xl text-xs font-medium focus:outline-none">
-                    <option value="سبحان الله">سبحان الله (33)</option>
-                    <option value="الحمد لله">الحمد لله (33)</option>
-                    <option value="الله أكبر">الله أكبر (34)</option>
-                    <option value="لا إله إلا الله وحدها لا شريك له">لا إله إلا الله (100)</option>
-                    <option value="استغفر الله العظيم">استغفر الله العظيم (100)</option>
-                    <option value="صلى الله على محمد">الصلاة على النبي (100)</option>
-                </select>
+        <!-- 3. Tasbih Tab Content -->
+        <div id="content-tasbih" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center max-w-md mx-auto">
+                <div class="flex justify-center mb-4">
+                    <select id="tasbihType" onchange="changeTasbihTarget()" class="bg-slate-100 border border-slate-200 text-slate-700 py-2 px-4 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-islamic-500">
+                        <option value="سبحان الله">سبحان الله (33)</option>
+                        <option value="الحمد لله">الحمد لله (33)</option>
+                        <option value="الله أكبر">الله أكبر (34)</option>
+                        <option value="لا إله إلا الله وحدها لا شريك له">لا إله إلا الله (100)</option>
+                        <option value="استغفر الله العظيم">استغفر الله العظيم (100)</option>
+                        <option value="صلى الله على محمد">الصلاة على النبي (100)</option>
+                    </select>
+                </div>
+                <div class="relative my-8 flex justify-center">
+                    <button onclick="incrementCounter()" class="w-56 h-56 rounded-full bg-gradient-to-b from-islamic-500 to-islamic-700 text-white shadow-xl hover:shadow-2xl active:scale-95 transition flex flex-col items-center justify-center border-4 border-islamic-100 pulse-subtle group select-none">
+                        <span class="text-6xl font-black font-amiri" id="counterValue">0</span>
+                        <span class="text-xs uppercase tracking-widest opacity-80 mt-1" id="counterTargetLabel">من 33</span>
+                        <span class="text-xs bg-islamic-800/40 px-3 py-1 rounded-full mt-3 group-hover:bg-islamic-800 transition">انقر للتسبيح (+1 نقطة)</span>
+                    </button>
+                </div>
+                <div class="flex justify-center gap-3">
+                    <button onclick="resetCounter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate-right"></i> تصفير
+                    </button>
+                    <button onclick="vibrateDevice()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-mobile-screen-button"></i> الاهتزاز
+                    </button>
+                </div>
             </div>
-            <div class="my-4 flex justify-center">
-                <button onclick="incrementCounter()" class="w-48 h-48 rounded-full bg-gradient-to-b from-islamic-500 to-islamic-700 text-white shadow-lg active:scale-95 flex flex-col items-center justify-center border-4 border-islamic-100 select-none">
-                    <span class="text-5xl font-black font-amiri" id="counterValue">0</span>
-                    <span class="text-[10px] uppercase tracking-widest opacity-80 mt-1" id="counterTargetLabel">من 33</span>
-                    <span class="text-[10px] bg-islamic-800/40 px-2.5 py-0.5 rounded-full mt-2">انقر للتسبيح (+1)</span>
-                </button>
-            </div>
-            <div class="flex justify-center gap-2">
-                <button onclick="resetCounter()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold">
-                    <i class="fa-solid fa-rotate-right"></i> تصفير
-                </button>
-                <button onclick="vibrateDevice()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold">
-                    <i class="fa-solid fa-mobile-screen-button"></i> الاهتزاز
-                </button>
-            </div>
-        </section>
+        </div>
 
-        <!-- القسم الرابع: الأدعية -->
-        <section id="section-duaa" class="bg-white p-4 shadow-sm border-y border-slate-200 w-full">
-            <h3 class="font-bold text-base text-slate-800 mb-3 flex items-center gap-2">
+        <!-- 4. Duaa Tab Content -->
+        <div id="content-duaa" class="tab-content hidden space-y-4">
+            <h3 class="font-bold text-lg text-slate-800 mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-hands-praying text-islamic-600"></i> جوامع الدعاء والأدعية القرآنية
             </h3>
-            <div class="grid grid-cols-1 gap-3" id="duaaList"></div>
-        </section>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="duaaList"></div>
+        </div>
     </main>
 
-    <!-- إشعار التنبيه العائم -->
-    <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-xl shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2 text-xs">
-        <i class="fa-solid fa-circle-check text-islamic-500 text-sm"></i>
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-3 text-sm">
+        <i class="fa-solid fa-circle-check text-islamic-500 text-lg"></i>
         <span id="toastMessage">تم الحفظ بنجاح</span>
     </div>
 
-    <!-- نافذة الإعدادات -->
-    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-sm text-slate-800">إعدادات التطبيق</h3>
-                <button onclick="closeSettings()" class="text-slate-400 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800">إعدادات التطبيق</h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
-            <div class="space-y-2 text-xs">
-                <label class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg cursor-pointer">
-                    <span class="font-medium text-slate-700">التنبيهات اليومية</span>
-                    <input type="checkbox" id="settingNotifications" class="w-4 h-4 accent-islamic-600 rounded" checked onchange="saveSettings()">
+            <div class="space-y-3 text-sm">
+                <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer">
+                    <span class="font-medium text-slate-700">التنبيهات اليومية (تذكير)</span>
+                    <input type="checkbox" id="settingNotifications" class="w-5 h-5 accent-islamic-600 rounded" checked onchange="saveSettings()">
                 </label>
-                <label class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg cursor-pointer">
+                <label class="flex items-center justify-between p-3 bg-slate-50 rounded-xl cursor-pointer">
                     <span class="font-medium text-slate-700">الاهتزاز عند التسبيح</span>
-                    <input type="checkbox" id="settingVibrate" class="w-4 h-4 accent-islamic-600 rounded" checked onchange="saveSettings()">
+                    <input type="checkbox" id="settingVibrate" class="w-5 h-5 accent-islamic-600 rounded" checked onchange="saveSettings()">
                 </label>
             </div>
-            <button onclick="closeSettings()" class="w-full bg-islamic-900 text-white font-semibold py-2 rounded-xl text-xs">تم</button>
+            <div class="pt-2">
+                <button onclick="closeSettings()" class="w-full bg-islamic-900 hover:bg-islamic-800 text-white font-semibold py-2.5 rounded-xl transition">
+                    تم
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- نافذة الإحصائيات -->
-    <div id="statsModal" class="fixed inset-0 bg-slate-900/50 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl space-y-3 text-center">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-sm text-slate-800">إحصائيات النقاط</h3>
-                <button onclick="closeStats()" class="text-slate-400 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <!-- Stats Modal -->
+    <div id="statsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-lg text-slate-800">إحصائيات النقاط والجوائز</h3>
+                <button onclick="closeStats()" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
             </div>
-            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
-                <div class="text-2xl font-extrabold text-amber-600 font-amiri"><span id="statsTotalPoints">0</span> نقطة</div>
-                <div class="text-[11px] text-slate-600 mt-0.5">مستوى الحافظ المبتدئ</div>
-            </div>
-            <div class="grid grid-cols-2 gap-2 text-xs">
-                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <div class="text-base font-bold text-slate-800" id="statsTotalTasbih">0</div>
-                    <div class="text-[10px] text-slate-500">إجمالي التسبيحات</div>
+            <div class="space-y-3 text-center py-2">
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                    <div class="text-3xl font-extrabold text-amber-600 font-amiri"><span id="statsTotalPoints">0</span> نقطة</div>
+                    <div class="text-xs text-slate-600 mt-1" id="statsUserLevelDesc">مستوى الحافظ المبتدئ</div>
                 </div>
-                <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-                    <div class="text-base font-bold text-slate-800" id="statsWirdDone">0/4</div>
-                    <div class="text-[10px] text-slate-500">الإنجاز المنجز</div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="text-xl font-bold text-slate-800" id="statsTotalTasbih">0</div>
+                        <div class="text-xs text-slate-500">إجمالي التسبيحات</div>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div class="text-xl font-bold text-slate-800" id="statsWirdDone">0/4</div>
+                        <div class="text-xs text-slate-500">أجزاء الإنجاز المنجزة</div>
+                    </div>
                 </div>
             </div>
-            <button onclick="closeStats()" class="w-full bg-islamic-900 text-white font-semibold py-2 rounded-xl text-xs">إغلاق</button>
+            <div>
+                <button onclick="closeStats()" class="w-full bg-islamic-900 hover:bg-islamic-800 text-white font-semibold py-2.5 rounded-xl transition">
+                    إغلاق
+                </button>
+            </div>
         </div>
     </div>
 
@@ -244,10 +273,10 @@
             tasbihTarget: 33,
             currentTasbihKey: 'سبحان الله',
             wird: [
-                { id: 1, title: 'ورد سورة البقرة', desc: 'قراءة صفحتين من البقرة (+50 نقطة)', completed: false, points: 50 },
-                { id: 2, title: 'ورد سورة يس', desc: 'قراءة سورة يس يومياً (+50 نقطة)', completed: false, points: 50 },
-                { id: 3, title: 'ورد التسبيح', desc: 'إتمام ورد التسبيح اليومي (+50 نقطة)', completed: false, points: 50 },
-                { id: 4, title: 'ورد الصلاة على النبي', desc: 'الصلاة على النبي ﷺ 100 مرة (+50 نقطة)', completed: false, points: 50 }
+                { id: 1, title: 'ورد سورة البقرة', desc: 'قراءة صفحتين من سورة البقرة المباركة (+50 نقطة)', completed: false, points: 50 },
+                { id: 2, title: 'ورد سورة يس', desc: 'قراءة سورة يس المباركة يومياً (+50 نقطة)', completed: false, points: 50 },
+                { id: 3, title: 'ورد التسبيح', desc: 'إتمام ورد التسبيح والاستغفار اليومي (+50 نقطة)', completed: false, points: 50 },
+                { id: 4, title: 'ورد الصلاة على النبي', desc: 'الصلاة والسلام على نبينا محمد ﷺ 100 مرة (+50 نقطة)', completed: false, points: 50 }
             ],
             settings: { notifications: true, vibrate: true }
         };
@@ -269,7 +298,7 @@
             ],
             sleep: [
                 { text: 'باسْمِكَ رَبِّ وضَعْتُ جَنْبي، وبِكَ أَرْفَعُهُ، إنْ أَمْسَكْتَ نَفْسي فارْحَمْها، وإنْ أَرْسَلْتَها فاحْفَظْها بما تَحْفَظُ به عِبادَكَ الصَّالِحينَ.', count: 1, current: 0 },
-                { text: 'جمع كفيه ثم نفث فيهما وقرأ: قل هو الله أحد، والمعوذتين (ثلاث مرات).', count: 3, current: 0 },
+                { text: 'جمع كفيه ثم نفث فيهما وقرأ: قل هو الله أحد، وقل أعوذ برب الفلق، وقل أعوذ برب الناس (ثلاث مرات).', count: 3, current: 0 },
                 { text: 'قراءة آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 }
             ]
         };
@@ -288,6 +317,7 @@
             loadAdhkarCategory('morning');
             renderDuaa();
             updateProgressStats();
+            switchTab('wird'); // التأكد من فتح تبويب الإنجاز اليومي كافتراضي
         };
 
         function updateHijriDate() {
@@ -300,23 +330,37 @@
             }
         }
 
+        function switchTab(tabId) {
+            ['wird', 'adhkar', 'tasbih', 'duaa'].forEach(t => {
+                const content = document.getElementById(`content-${t}`);
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tabId) {
+                    if (content) content.classList.remove('hidden');
+                    if (btn) btn.className = "tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm";
+                } else {
+                    if (content) content.classList.add('hidden');
+                    if (btn) btn.className = "tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50";
+                }
+            });
+        }
+
         function renderWird() {
             const container = document.getElementById('wirdList');
             if(!container) return;
             container.innerHTML = '';
             appState.wird.forEach(item => {
                 const card = document.createElement('div');
-                card.className = `p-3 rounded-xl border flex items-center justify-between gap-2 ${item.completed ? 'bg-islamic-50/60 border-islamic-200' : 'bg-slate-50 border-slate-100'}`;
+                card.className = `p-4 rounded-2xl border transition flex items-center justify-between gap-3 ${item.completed ? 'bg-islamic-50/60 border-islamic-200' : 'bg-white border-slate-100 shadow-sm'}`;
                 card.innerHTML = `
-                    <div class="flex items-start gap-2.5">
-                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleWird(${item.id})" class="mt-1 w-4 h-4 accent-islamic-600 rounded cursor-pointer">
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleWird(${item.id})" class="mt-1 w-5 h-5 accent-islamic-600 rounded cursor-pointer">
                         <div>
-                            <h4 class="font-bold text-slate-800 text-xs sm:text-sm ${item.completed ? 'line-through text-slate-400' : ''}">${item.title}</h4>
-                            <p class="text-[11px] text-slate-500 mt-0.5">${item.desc}</p>
+                            <h4 class="font-bold text-slate-800 ${item.completed ? 'line-through text-slate-400' : ''}">${item.title}</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">${item.desc}</p>
                         </div>
                     </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium ${item.completed ? 'bg-islamic-100 text-islamic-800' : 'bg-amber-50 text-amber-800'}">
-                        ${item.completed ? 'مكتسب' : '+50'}
+                    <span class="text-xs px-2.5 py-1 rounded-full font-medium ${item.completed ? 'bg-islamic-100 text-islamic-800' : 'bg-amber-50 text-amber-800'}">
+                        ${item.completed ? '+50 نقطة مكتسبة' : '+50 نقطة'}
                     </span>
                 `;
                 container.appendChild(card);
@@ -330,10 +374,10 @@
                 item.completed = !item.completed;
                 if (item.completed) {
                     appState.totalPoints += 50;
-                    showToast(`أحسنت! كسبت 50 نقطة`);
+                    showToast(`أحسنت! كسبت 50 نقطة لإتمام ${item.title}`);
                 } else {
                     appState.totalPoints = Math.max(0, appState.totalPoints - 50);
-                    showToast('تم إلغاء الإنجاز');
+                    showToast('تم إلغاء تحديد الإنجاز وخصم النقاط');
                 }
                 saveData();
                 renderWird();
@@ -349,7 +393,7 @@
             appState.totalPoints = Math.max(0, appState.totalPoints - pointsToSubtract);
             saveData();
             renderWird();
-            showToast('تم إعادة التعيين');
+            showToast('تم إعادة تعيين الإنجازات اليومية');
         }
 
         function loadAdhkarCategory(cat) {
@@ -357,9 +401,9 @@
                 const btn = document.getElementById(`btn-${c}`);
                 if (btn) {
                     if (c === cat) {
-                        btn.classList.add('ring-2', 'ring-islamic-500');
+                        btn.classList.add('ring-2', 'ring-offset-2', 'ring-islamic-500');
                     } else {
-                        btn.classList.remove('ring-2', 'ring-islamic-500');
+                        btn.classList.remove('ring-2', 'ring-offset-2', 'ring-islamic-500');
                     }
                 }
             });
@@ -370,14 +414,14 @@
             
             adhkarData[cat].forEach((dhikr, index) => {
                 const card = document.createElement('div');
-                card.className = `p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col gap-2 ${dhikr.current >= dhikr.count ? 'opacity-60 bg-slate-100' : ''}`;
+                card.className = `p-4 rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col gap-3 transition ${dhikr.current >= dhikr.count ? 'opacity-60 bg-slate-50' : ''}`;
                 card.innerHTML = `
-                    <p class="text-slate-800 quran-font text-base leading-relaxed">${dhikr.text}</p>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-200/60">
-                        <span class="text-[11px] font-semibold text-slate-600">المطلوب: ${dhikr.count}</span>
-                        <button onclick="decrementDhikr('${cat}', ${index})" class="px-3 py-1 rounded-lg bg-islamic-600 text-white font-bold text-xs flex items-center gap-1 active:scale-95">
+                    <p class="text-slate-800 quran-font text-lg leading-relaxed">${dhikr.text}</p>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-50">
+                        <span class="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">العدد المطلوب: ${dhikr.count}</span>
+                        <button onclick="decrementDhikr('${cat}', ${index})" class="px-4 py-1.5 rounded-xl bg-islamic-600 hover:bg-islamic-700 text-white font-bold text-sm transition shadow-sm active:scale-95 flex items-center gap-1.5">
                             <span>متبقي: ${dhikr.count - dhikr.current}</span>
-                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <i class="fa-solid fa-plus text-xs"></i>
                         </button>
                     </div>
                 `;
@@ -443,9 +487,9 @@
         function vibrateDevice() {
             if (navigator.vibrate) {
                 navigator.vibrate([50, 50, 50]);
-                showToast('تم الاهتزاز');
+                showToast('تم اختبار الاهتزاز بنجاح');
             } else {
-                showToast('غير مدعوم');
+                showToast('خاصية الاهتزاز غير مدعومة');
             }
         }
 
@@ -455,16 +499,16 @@
             container.innerHTML = '';
             duaaData.forEach((duaa) => {
                 const card = document.createElement('div');
-                card.className = 'p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col justify-between gap-2';
+                card.className = 'p-5 rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col justify-between gap-3';
                 card.innerHTML = `
                     <div>
-                        <h4 class="font-bold text-islamic-800 text-xs sm:text-sm mb-1 flex items-center gap-1.5">
-                            <i class="fa-solid fa-star text-islamic-gold text-[10px]"></i> ${duaa.title}
+                        <h4 class="font-bold text-islamic-800 text-base mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-star text-islamic-gold text-xs"></i> ${duaa.title}
                         </h4>
-                        <p class="text-slate-700 quran-font text-base leading-relaxed">${duaa.text}</p>
+                        <p class="text-slate-700 quran-font text-lg leading-loose">${duaa.text}</p>
                     </div>
-                    <div class="flex justify-end pt-1">
-                        <button onclick="copyDuaa('${duaa.text}')" class="text-[11px] text-islamic-600 font-semibold flex items-center gap-1 bg-islamic-50 px-2.5 py-1 rounded-lg">
+                    <div class="flex justify-end pt-2">
+                        <button onclick="copyDuaa('${duaa.text}')" class="text-xs text-islamic-600 hover:text-islamic-800 font-semibold flex items-center gap-1 bg-islamic-50 px-3 py-1.5 rounded-xl transition">
                             <i class="fa-regular fa-copy"></i> نسخ الدعاء
                         </button>
                     </div>
@@ -475,7 +519,9 @@
 
         function copyDuaa(text) {
             navigator.clipboard.writeText(text).then(() => {
-                showToast('تم النسخ');
+                showToast('تم نسخ الدعاء إلى الحافظة');
+            }).catch(() => {
+                showToast('تعذر النسخ');
             });
         }
 
@@ -498,10 +544,18 @@
             if(totTasb) totTasb.innerText = appState.totalTasbihAllTime;
         }
 
-        function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
-        function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
-        function openStats() { document.getElementById('statsModal').classList.remove('hidden'); }
-        function closeStats() { document.getElementById('statsModal').classList.add('hidden'); }
+        function openSettings() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+        function openStats() {
+            document.getElementById('statsModal').classList.remove('hidden');
+        }
+        function closeStats() {
+            document.getElementById('statsModal').classList.add('hidden');
+        }
 
         function saveSettings() {
             const notif = document.getElementById('settingNotifications');
@@ -519,7 +573,7 @@
                 toast.classList.remove('opacity-0', 'pointer-events-none');
                 setTimeout(() => {
                     toast.classList.add('opacity-0', 'pointer-events-none');
-                }, 2000);
+                }, 3000);
             }
         }
 
@@ -549,7 +603,7 @@
                         if (vibEl) vibEl.checked = appState.settings.vibrate;
                     }
                 } catch (e) {
-                    console.error(e);
+                    console.error('Error loading saved data', e);
                 }
             }
         }
