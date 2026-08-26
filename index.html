@@ -116,21 +116,23 @@
             </div>
         </section>
 
-        <div class="flex bg-white p-1.5 rounded-2xl shadow-sm mb-6 border border-slate-100 overflow-x-auto">
-            <button onclick="switchTab('wird')" id="tab-wird" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm">
+        <!-- Navigation Tabs -->
+        <div class="flex bg-white p-1.5 rounded-2xl shadow-sm mb-6 border border-slate-100 overflow-x-auto gap-1">
+            <button onclick="switchTab('wird')" id="tab-wird" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm">
                 <i class="fa-solid fa-book-open"></i> الإنجاز اليومي
             </button>
-            <button onclick="switchTab('adhkar')" id="tab-adhkar" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+            <button onclick="switchTab('adhkar')" id="tab-adhkar" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
                 <i class="fa-solid fa-sun"></i> الأذكار
             </button>
-            <button onclick="switchTab('tasbih')" id="tab-tasbih" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+            <button onclick="switchTab('tasbih')" id="tab-tasbih" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
                 <i class="fa-solid fa-hand-pointer"></i> المسبحة
             </button>
-            <button onclick="switchTab('duaa')" id="tab-duaa" class="flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
+            <button onclick="switchTab('duaa')" id="tab-duaa" class="tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50">
                 <i class="fa-solid fa-hands-praying"></i> الأدعية
             </button>
         </div>
 
+        <!-- 1. Wird Tab Content -->
         <div id="content-wird" class="tab-content space-y-4">
             <div class="flex justify-between items-center mb-2">
                 <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
@@ -141,6 +143,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="wirdList"></div>
         </div>
 
+        <!-- 2. Adhkar Tab Content -->
         <div id="content-adhkar" class="tab-content hidden space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 <button onclick="loadAdhkarCategory('morning')" id="btn-morning" class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-bold flex items-center justify-center gap-2 transition hover:bg-amber-100 shadow-sm">
@@ -156,6 +159,7 @@
             <div id="adhkarContainer" class="space-y-4"></div>
         </div>
 
+        <!-- 3. Tasbih Tab Content -->
         <div id="content-tasbih" class="tab-content hidden space-y-6">
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 text-center max-w-md mx-auto">
                 <div class="flex justify-center mb-4">
@@ -186,6 +190,7 @@
             </div>
         </div>
 
+        <!-- 4. Duaa Tab Content -->
         <div id="content-duaa" class="tab-content hidden space-y-4">
             <h3 class="font-bold text-lg text-slate-800 mb-2 flex items-center gap-2">
                 <i class="fa-solid fa-hands-praying text-islamic-600"></i> جوامع الدعاء والأدعية القرآنية
@@ -312,6 +317,7 @@
             loadAdhkarCategory('morning');
             renderDuaa();
             updateProgressStats();
+            switchTab('wird'); // التأكد من فتح تبويب الإنجاز اليومي كافتراضي
         };
 
         function updateHijriDate() {
@@ -329,11 +335,11 @@
                 const content = document.getElementById(`content-${t}`);
                 const btn = document.getElementById(`tab-${t}`);
                 if (t === tabId) {
-                    if(content) content.classList.remove('hidden');
-                    if(btn) btn.className = "flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm";
+                    if (content) content.classList.remove('hidden');
+                    if (btn) btn.className = "tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 bg-islamic-900 text-white shadow-sm";
                 } else {
-                    if(content) content.classList.add('hidden');
-                    if(btn) btn.className = "flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50";
+                    if (content) content.classList.add('hidden');
+                    if (btn) btn.className = "tab-btn flex-1 min-w-[90px] py-2.5 px-3 rounded-xl font-semibold text-xs md:text-sm transition flex items-center justify-center gap-1.5 text-slate-600 hover:bg-slate-50";
                 }
             });
         }
