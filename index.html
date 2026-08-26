@@ -68,7 +68,7 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.03); }
         }
-        /* Strict mobile shell container styling */
+        /* Strict mobile shell container styling - Fixed and stable */
         .mobile-shell {
             width: 100%;
             max-width: 412px;
@@ -127,20 +127,21 @@
             </div>
         </header>
 
+        <!-- Main Scrollable Area -->
         <main class="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
             
-            <!-- Hero Card -->
+            <!-- Hero Card with Application Description instead of Hijri date -->
             <section class="bg-gradient-to-r from-islamic-800 to-islamic-900 rounded-2xl p-4 text-white shadow-md relative overflow-hidden shrink-0">
                 <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-islamic-700 rounded-full opacity-25 pointer-events-none"></div>
                 <div class="relative z-10 flex justify-between items-center gap-3">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="bg-islamic-gold text-white text-[10px] px-2.5 py-0.5 rounded-full font-semibold shadow-sm">الإنجاز اليومي</span>
+                            <span class="bg-islamic-gold text-white text-[10px] px-2.5 py-0.5 rounded-full font-semibold shadow-sm">تعريف التطبيق</span>
                             <span class="bg-white/10 backdrop-blur-sm text-islamic-100 text-[10px] px-2.5 py-0.5 rounded-full border border-white/10" id="userLevelBadge">مبتدئ</span>
                         </div>
-                        <h2 class="text-sm font-bold font-amiri" id="todayHijriDate">جارِ تحميل التاريخ...</h2>
+                        <h2 class="text-xs font-medium font-cairo text-islamic-100 leading-relaxed">تطبيق إيماني لضبط الأوراد اليومية، الأذكار، والتسبيح لكسب الأجر ونيل الدرجات العالية.</h2>
                     </div>
-                    <div class="bg-islamic-800/90 px-3 py-2 rounded-xl border border-islamic-700/50 backdrop-blur-sm flex items-center gap-2">
+                    <div class="bg-islamic-800/90 px-3 py-2 rounded-xl border border-islamic-700/50 backdrop-blur-sm flex items-center gap-2 shrink-0">
                         <div>
                             <div class="text-[10px] text-islamic-100 opacity-80">النقاط</div>
                             <div class="text-base font-bold text-islamic-gold" id="dailyTotalPoints">0</div>
@@ -168,11 +169,10 @@
                 </button>
             </div>
 
-            <!-- Tab 1: Wird (الإنجاز اليومي) -->
             <div id="content-wird" class="tab-content space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bookmark text-islamic-600"></i> الورد اليومي (50 نقطة لكل إنجاز)
+                        <i class="fa-solid fa-bookmark text-islamic-600"></i> الإنجاز اليومي (50 نقطة لكل إنجاز)
                     </h3>
                     <button onclick="resetWird()" class="text-[11px] text-islamic-600 hover:underline font-medium">إعادة تعيين</button>
                 </div>
@@ -182,7 +182,6 @@
                 </div>
             </div>
 
-            <!-- Tab 2: Adhkar -->
             <div id="content-adhkar" class="tab-content hidden space-y-3">
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="loadAdhkarCategory('morning')" id="btn-morning" class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-bold text-xs flex flex-col items-center justify-center gap-1 transition shadow-sm">
@@ -201,7 +200,6 @@
                 </div>
             </div>
 
-            <!-- Tab 3: Tasbih -->
             <div id="content-tasbih" class="tab-content hidden space-y-4">
                 <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center flex flex-col items-center">
                     <div class="w-full mb-3">
@@ -235,7 +233,6 @@
                 </div>
             </div>
 
-            <!-- Tab 4: Duaa -->
             <div id="content-duaa" class="tab-content hidden space-y-3">
                 <h3 class="font-bold text-xs text-slate-800 mb-1 flex items-center gap-1.5">
                     <i class="fa-solid fa-hands-praying text-islamic-600"></i> جوامع الدعاء والأدعية القرآنية
@@ -247,6 +244,7 @@
 
         </main>
 
+        <!-- Footer -->
         <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2 text-center text-[10px] text-slate-400 z-30 shadow-lg">
             تطبيق أوراد المبارك - أبناء الفكي الأمين ود أم حقين © 2026
         </div>
@@ -326,7 +324,7 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-        // Global Application State
+        // Global Application State with exactly 4 daily wird items requested
         let appState = {
             totalPoints: 0,
             totalTasbihAllTime: 0,
@@ -376,22 +374,11 @@
 
         window.onload = function() {
             loadSavedData();
-            updateHijriDate();
             renderWird();
             loadAdhkarCategory('morning');
             renderDuaa();
             updateProgressStats();
         };
-
-        function updateHijriDate() {
-            try {
-                const options = { calendar: 'islamic-umalqura', day: 'numeric', month: 'long', year: 'numeric' };
-                const todayStr = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', options).format(new Date());
-                document.getElementById('todayHijriDate').innerText = todayStr;
-            } catch (e) {
-                document.getElementById('todayHijriDate').innerText = 'الأربعاء ١٥ رجب ١٤٤٧ هـ';
-            }
-        }
 
         // Navigation Controller
         function switchTab(tabId) {
@@ -425,7 +412,7 @@
                         </div>
                     </div>
                     <span class="text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${item.completed ? 'bg-islamic-100 text-islamic-800' : 'bg-amber-50 text-amber-800'}">
-                        ${item.completed ? '+50 نقطة' : '+50 نقطة'}
+                        +50 نقطة
                     </span>
                 `;
                 container.appendChild(card);
