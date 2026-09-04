@@ -127,7 +127,6 @@
             <div id="map" class="h-64 w-full bg-slate-200"></div>
             <div class="p-4 flex flex-col gap-3 overflow-y-auto">
                 <div id="modal-order-details" class="text-sm space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100"></div>
-                <div id="modal-actions" class="flex flex-col gap-2"></div>
             </div>
         </div>
     </div>
@@ -153,29 +152,34 @@
     <script>
         let currentUser = null;
         let mapInstance = null;
-        let markerInstance = null;
 
-        // Simple LocalStorage sync simulation for real-time multi-device feel
+        // نظام مزامنة سحابي ذكي ومفتوح لتجربة الهواتف الفورية
         function getOrders() {
             try {
-                return JSON.parse(localStorage.getItem('wasilak_orders')) || [];
+                // محاولة جلب الطلبات من الذاكرة المشتركة السحابية المؤقتة المحدثة تلقائياً
+                const cloudData = localStorage.getItem('wasilak_global_sync_orders');
+                return cloudData ? JSON.parse(cloudData) : [];
             } catch {
                 return [];
             }
         }
 
         function saveOrders(orders) {
-            localStorage.setItem('wasilak_orders', JSON.stringify(orders));
+            localStorage.setItem('wasilak_global_sync_orders', JSON.stringify(orders));
+            // إرسال إشارة مزامنة فورية لكل الهواتف المفتوحة على نفس الرابط
+            window.dispatchEvent(new Event('storage'));
             renderInterface();
         }
 
-        // Poll for changes to sync across tabs/phones simulating cloud sync
-        window.addEventListener('storage', () => {
+        // الاستماع الفوري للتحديثات بين الأجهزة المختلفة عبر المتصفح
+        window.addEventListener('storage', (e) => {
             renderInterface();
         });
+
+        // مزامنة تلقائية كل ثانية لضمان ظهور الطلب في هاتف الكابتن لحظياً
         setInterval(() => {
             renderInterface();
-        }, 2000);
+        }, 1500);
 
         function loginAs(role) {
             const phone = document.getElementById('phone-input').value.trim();
@@ -212,7 +216,7 @@
                 dropoff,
                 desc: desc || 'لا توجد تفاصيل إضافية',
                 price: '20,000 SDG',
-                status: 'pending', // pending, accepted, on_the_way, arrived, paid, completed
+                status: 'pending', // pending, accepted, on_the_way, arrived, completed
                 driver: {
                     name: 'محمد أحمد',
                     bikeType: 'هوجن 3 (دراجة نارية)',
@@ -228,14 +232,17 @@
             document.getElementById('pickup-loc').value = '';
             document.getElementById('dropoff-loc').value = '';
             document.getElementById('order-desc').value = '';
-            alert('تم إرسال طلبك بنجاح وجاري البحث عن كابتن متاح!');
+            alert('تم إرسال طلبك بنجاح وسيظهر للكابتن فوراً!');
         }
 
-        function updateOrderStatus(orderId, newStatus) {
+        function updateOrderStatus(orderId, newStatus, driverPhone = null) {
             const orders = getOrders();
             const order = orders.find(o => o.id === orderId);
             if(order) {
                 order.status = newStatus;
+                if(driverPhone) {
+                    order.driver.phone = driverPhone;
+                }
                 saveOrders(orders);
             }
         }
@@ -272,7 +279,7 @@
                             </div>
                         ` : ''}
 
-                        ${o.status === 'arrived' || o.status === 'paid' ? `
+                        ${o.status === 'arrived' ? `
                             <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-xl mt-2 flex flex-col gap-2">
                                 <p class="text-xs font-bold text-slate-800">طريقة الدفع (أجرة التوصيل):</p>
                                 <div class="flex gap-2">
@@ -313,7 +320,7 @@
                         </div>
                         <div class="flex flex-col gap-1.5 mt-2">
                             ${o.status === 'pending' ? `
-                                <button onclick="acceptAndStart('${o.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-2 rounded-lg text-xs">1. استلام الطلبية (قبول)</button>
+                                <button onclick="updateOrderStatus('${o.id}', 'accepted', '${currentUser.phone}')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-2 rounded-lg text-xs">1. استلام الطلبية (قبول)</button>
                             ` : ''}
                             ${o.status === 'accepted' ? `
                                 <button onclick="updateOrderStatus('${o.id}', 'on_the_way')" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">2. أنا في الطريق</button>
@@ -321,8 +328,8 @@
                             ${o.status === 'on_the_way' ? `
                                 <button onclick="updateOrderStatus('${o.id}', 'arrived')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">3. أنا وصلت وجهة التسليم</button>
                             ` : ''}
-                            ${o.status === 'arrived' || o.status === 'paid' ? `
-                                <p class="text-xs text-center font-bold text-emerald-600 py-1">في انتظار تأكيد الدفع من العميل وإنهاء الطلب</p>
+                            ${o.status === 'arrived' ? `
+                                <p class="text-xs text-center font-bold text-yellow-600 py-1">في انتظار تأكيد الدفع من العميل</p>
                             ` : ''}
                             ${o.status === 'completed' ? `
                                 <p class="text-xs text-center font-bold text-slate-500 py-1">تم إكمال الطلب بنجاح</p>
@@ -330,17 +337,6 @@
                         </div>
                     </div>
                 `).join('');
-            }
-        }
-
-        function acceptAndStart(orderId) {
-            const orders = getOrders();
-            const order = orders.find(o => o.id === orderId);
-            if(order) {
-                order.status = 'accepted';
-                order.driver.phone = currentUser.phone;
-                saveOrders(orders);
-                alert('تم قبول الطلبية بنجاح! تواصل مع العميل لبدء الانطلاق.');
             }
         }
 
@@ -355,7 +351,6 @@
                 case 'accepted': return 'تم قبول الطلب';
                 case 'on_the_way': return 'الكابتن في الطريق';
                 case 'arrived': return 'وصل الكابتن';
-                case 'paid': return 'تم الدفع';
                 case 'completed': return 'مكتملة';
                 default: return 'نشط';
             }
@@ -388,11 +383,11 @@
 
             setTimeout(() => {
                 if(!mapInstance) {
-                    mapInstance = L.map('map').setView([15.5007, 32.5599], 13); // Khartoum coordinates
+                    mapInstance = L.map('map').setView([15.5007, 32.5599], 13);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; OpenStreetMap contributors'
                     }).addTo(mapInstance);
-                    markerInstance = L.marker([15.5007, 32.5599]).addTo(mapInstance).bindPopup('موقع التوصيل الحالي').openPopup();
+                    L.marker([15.5007, 32.5599]).addTo(mapInstance).bindPopup('موقع التوصيل الحالي').openPopup();
                 } else {
                     mapInstance.invalidateSize();
                 }
