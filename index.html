@@ -2,409 +2,883 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>واصلك سريع</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS for Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fefce8',
+                            100: '#fef08a',
+                            500: '#facc15',
+                            600: '#eab308',
+                            700: '#ca8a04',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-        .logo-frame {
-            border: 4px solid #FACC15;
-            border-radius: 50%;
-            padding: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #1E293B;
+        body {
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-slate-900 text-white shadow-md py-4 px-6 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <div class="logo-frame w-12 h-12">
-                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">واصلك سريع</h1>
-            </div>
-        </div>
-        <div id="user-role-badge" class="text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">جاري التحديد...</div>
-    </header>
-
-    <!-- Main Container -->
-    <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-4">
-
-        <!-- Login / Role Selection Screen -->
-        <div id="auth-screen" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col gap-6 my-auto">
-            <div class="text-center flex flex-col items-center gap-3">
-                <div class="logo-frame w-20 h-20 shadow-lg">
-                    <svg class="w-10 h-10 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl p-6 sm:p-8 space-y-6">
+            <div class="text-center space-y-3">
+                <div class="w-16 h-16 mx-auto flex items-center justify-center rounded-2xl border-2 border-brand-500 bg-slate-900 shadow-md">
+                    <i class="fa-solid fa-motorcycle text-brand-500 text-2xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-900">مرحباً بك في واصلك سريع</h2>
-                <p class="text-sm text-slate-500">منصة التوصيل الفوري الذكية في السودان</p>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">واصلك سريع</h2>
+                </div>
             </div>
 
-            <div class="space-y-4">
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الهاتف (رمز السودان)</label>
-                    <div class="flex gap-2">
-                        <span class="bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 flex items-center">+249</span>
-                        <input type="tel" id="phone-input" placeholder="912345678" class="flex-1 border border-slate-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" maxlength="9">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">رقم الهاتف النقال (السودان)</label>
+                    <div class="flex rounded-xl overflow-hidden border border-slate-200 bg-slate-50 focus-within:border-brand-500 transition">
+                        <span class="bg-slate-200 text-slate-700 font-bold px-3 py-2.5 text-xs flex items-center gap-1.5 select-none border-l border-slate-300">
+                            🇸🇩 +249
+                        </span>
+                        <input type="tel" id="auth-phone" required placeholder="912345678" maxlength="10" class="w-full bg-transparent px-3 py-2.5 text-sm focus:outline-none font-bold text-slate-900 tracking-wider">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button onclick="loginAs('client')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 px-4 rounded-xl shadow transition text-sm">دخول كعميل</button>
-                    <button onclick="loginAs('driver')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow transition text-sm">دخول ككابتن</button>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-2">اختر طبيعة حسابك في التطبيق</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer border-2 border-brand-500 bg-brand-50 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center transition hover:shadow-sm" id="role-client-label" onclick="setAuthRole('client')">
+                            <input type="radio" name="auth_role" value="client" checked class="hidden">
+                            <i class="fa-solid fa-user text-lg text-brand-600 mb-1"></i>
+                            <span class="font-bold text-xs text-slate-900">عميل / تاجر</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5">طلب وتوصيل أغراض</span>
+                        </label>
+                        <label class="cursor-pointer border-2 border-slate-200 bg-slate-50 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center transition hover:shadow-sm" id="role-driver-label" onclick="setAuthRole('driver')">
+                            <input type="radio" name="auth_role" value="driver" class="hidden">
+                            <i class="fa-solid fa-motorcycle text-lg text-slate-600 mb-1"></i>
+                            <span class="font-bold text-xs text-slate-700">سائق (كابتن)</span>
+                            <span class="text-[10px] text-slate-500 mt-0.5">استلام وتوصيل الطلبات</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full max-w-[120px] mx-auto bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold py-2 px-3 rounded-xl shadow-md shadow-brand-500/25 transition text-xs flex items-center justify-center gap-1.5 block">
+                    <span>دخول</span> <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-slate-900 rounded-xl border-2 border-brand-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <i class="fa-solid fa-motorcycle text-brand-500 text-base sm:text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-xl font-black text-slate-900 tracking-tight leading-tight">واصلك سريع</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="logged-user-badge" class="bg-slate-100 text-slate-700 text-xs px-3 py-1.5 rounded-xl font-bold border border-slate-200 hidden sm:inline-block"></span>
+                <button onclick="logoutApp()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="تسجيل الخروج">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">خروج</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-grow w-full">
+        
+        <!-- Role View 1: Client / Merchant -->
+        <div id="view-client" class="space-y-4 sm:space-y-8 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                <!-- Order Form Card -->
+                <div class="lg:col-span-2 bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4 sm:mb-6">
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-box-open text-brand-600"></i> بيانات طلب التوصيل
+                        </h3>
+                        <button onclick="openSupportModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-headset text-amber-600"></i> خدمة العملاء والشكاوى
+                        </button>
+                    </div>
+                    <form onsubmit="handleCreateOrder(event)" class="space-y-4 sm:space-y-6">
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-3">اختر تصنيف الطلب الأساسي</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+                                <button type="button" onclick="selectCategory('أطعمة ومشروبات', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2">
+                                    <i class="fa-solid fa-utensils text-lg sm:text-xl text-brand-600"></i>
+                                    أطعمة ومشروبات
+                                </button>
+                                <button type="button" onclick="selectCategory('أوراق ومستندات', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2">
+                                    <i class="fa-solid fa-file-lines text-lg sm:text-xl text-brand-600"></i>
+                                    أوراق ومستندات
+                                </button>
+                                <button type="button" onclick="selectCategory('أدوية وصيدلية', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2">
+                                    <i class="fa-solid fa-pills text-lg sm:text-xl text-brand-600"></i>
+                                    أدوية وصيدلية
+                                </button>
+                                <button type="button" onclick="selectCategory('أغراض أخرى', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-brand-500 bg-brand-50 transition text-slate-900 font-bold text-xs gap-1.5 sm:gap-2 ring-2 ring-brand-500">
+                                    <i class="fa-solid fa-box text-lg sm:text-xl text-brand-600"></i>
+                                    أغراض أخرى
+                                </button>
+                            </div>
+                            <input type="hidden" id="order-category" value="أغراض أخرى">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">اسم الطلب التفصيلي أو الملاحظات</label>
+                            <input type="text" id="order-desc" required placeholder="مثال: وجبة برجر دبل من مطعم السعادة، أو ظرف أوراق رسمية" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"><i class="fa-solid fa-store text-brand-600"></i> مكان الاستلام (من أين؟)</label>
+                                <input type="text" id="order-pickup" required placeholder="مثال: مطعم الشوكة الذهبية - شارع التحرير" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium" oninput="calculateDynamicFee()">
+                            </div>
+                            <div>
+                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"><i class="fa-solid fa-location-dot text-rose-500"></i> مكان التوصيل (إلى أين؟)</label>
+                                <input type="text" id="order-dropoff" required placeholder="مثال: حي الرياض - شارع الأمير سلطان" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium" oninput="calculateDynamicFee()">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">رقم الجوال للتواصل</label>
+                                <input type="tel" id="order-phone" required placeholder="09xxxxxxxx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2 flex justify-between items-center">
+                                    <span>أجرة التوصيل المحسوبة تلقائياً</span>
+                                    <span class="text-[10px] sm:text-xs text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full font-bold">10k - 30k SDG</span>
+                                </label>
+                                <input type="text" id="order-price" readonly value="15,000 SDG" class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none font-bold text-brand-700">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-900 font-black py-3.5 sm:py-4 rounded-xl shadow-lg shadow-brand-500/25 transition text-base sm:text-lg mt-2 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> إرسال الطلب للسائقين فوراً
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Active Orders & Direct Client Workflow Panel -->
+                <div class="space-y-6 flex flex-col">
+                    <div class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-brand-600"></i> طلباتك النشطة
+                        </h3>
+                        <div id="client-orders-list" class="space-y-3 max-h-[250px] overflow-y-auto">
+                            <p class="text-slate-400 text-xs sm:text-sm text-center py-4">لا توجد طلبات نشطة حالياً. قم بإرسال طلب جديد.</p>
+                        </div>
+                    </div>
+
+                    <!-- Direct Order Status & Workflow Panel -->
+                    <div id="client-direct-workflow-panel" class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 hidden flex flex-col">
+                        <h3 class="text-sm sm:text-base font-bold text-slate-900 mb-3 flex items-center gap-2 border-b border-slate-100 pb-2">
+                            <i class="fa-solid fa-circle-info text-brand-600"></i> تفاصيل الطلب وحالة التوصيل
+                        </h3>
+                        <div id="direct-workflow-content" class="space-y-3">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Client Interface -->
-        <div id="client-view" class="hidden flex flex-col gap-4">
-            <!-- New Order Box -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-4">
-                <h3 class="font-bold text-slate-800 text-base border-b pb-2">طلب توصيل جديد</h3>
+        <!-- Role View 2: Driver (Captain Dashboard) -->
+        <div id="view-driver" class="space-y-6 hidden">
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-700">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">عنوان الاستلام</label>
-                    <input type="text" id="pickup-loc" placeholder="مثال: الخرطوم، برري" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                    <span class="bg-brand-500/20 text-brand-400 border border-brand-500/30 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold inline-block mb-2 sm:mb-3">لوحة الكابتن (السائق)</span>
+                    <h2 class="text-xl sm:text-3xl font-black">الطلبات المتاحة في السحابة</h2>
+                    <p class="text-slate-300 text-xs sm:text-sm mt-1">اتبع خطوات الكابتن الثلاث: 1. استلام الطلبية ➔ 2. أنا في الطريق ➔ 3. أنا وصلت.</p>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">عنوان التوصيل</label>
-                    <input type="text" id="dropoff-loc" placeholder="مثال: أمدرمان، الملازمين" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">نوع الغرض وتفاصيل الطلب</label>
-                    <textarea id="order-desc" rows="2" placeholder="اكتب تفاصيل الطلب هنا..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
-                </div>
-                <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center text-sm">
-                    <span class="text-slate-600 font-medium">سعر التوصيل المقدر:</span>
-                    <span class="font-bold text-slate-900" id="estimated-price">15,000 SDG</span>
-                </div>
-                <button onclick="createOrder()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 rounded-xl shadow transition text-sm">إرسال الطلب الآن</button>
-            </div>
-
-            <!-- Active Orders List -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-3">
-                <h3 class="font-bold text-slate-800 text-base border-b pb-2">طلباتك النشطة</h3>
-                <div id="client-orders-list" class="flex flex-col gap-3">
-                    <p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات نشطة حالياً</p>
+                <div class="bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl sm:rounded-2xl flex items-center gap-2.5 self-stretch sm:self-auto justify-center">
+                    <div class="w-2.5 h-2.5 bg-brand-500 rounded-full animate-ping"></div>
+                    <span class="text-xs sm:text-sm font-bold text-brand-400">الكابتن متصل بالسحابة</span>
                 </div>
             </div>
 
-            <!-- Customer Support Button -->
-            <button onclick="openSupportModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl border border-slate-200 text-sm flex items-center justify-center gap-2 transition">
-                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                خدمة العملاء والشكاوى (عند تأخر الطلب)
-            </button>
-        </div>
-
-        <!-- Driver Interface -->
-        <div id="driver-view" class="hidden flex flex-col gap-4">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-3">
-                <h3 class="font-bold text-slate-800 text-base border-b pb-2">الطلبات المتاحة للتوصيل</h3>
-                <div id="driver-orders-list" class="flex flex-col gap-3">
-                    <p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات جديدة متاحة حالياً</p>
+            <div class="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200">
+                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-brand-600"></i> قائمة الطلبات الواردة من العملاء عبر الشبكة
+                </h3>
+                <div id="driver-orders-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <div class="col-span-full text-center py-12 text-slate-400 font-medium text-sm">
+                        جاري جلب الطلبات من السحابة...
+                    </div>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- Map & Tracking Modal -->
-    <div id="map-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden flex flex-col shadow-xl max-h-[90vh]">
-            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-sm">تتبع خط سير الطلبية</h3>
-                <button onclick="closeMapModal()" class="text-slate-400 hover:text-white font-bold text-lg">&times;</button>
+    <div id="toast" class="fixed bottom-4 left-4 right-4 sm:right-auto z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl transform translate-y-28 opacity-0 transition-all duration-300 font-bold text-xs sm:text-sm flex items-center gap-3 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-brand-500 text-base sm:text-lg flex-shrink-0"></i>
+        <span id="toast-message" class="truncate">تمت العملية بنجاح!</span>
+    </div>
+
+    <div id="order-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 text-white p-4 sm:p-5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-brand-500"></i>
+                    <h3 id="modal-order-title" class="font-black text-sm sm:text-base">خريطة تتبع الطلب</h3>
+                </div>
+                <button onclick="closeOrderModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div id="map" class="h-64 w-full bg-slate-200"></div>
-            <div class="p-4 flex flex-col gap-3 overflow-y-auto">
-                <div id="modal-order-details" class="text-sm space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100"></div>
+            <div id="modal-order-body" class="p-4 sm:p-6 overflow-y-auto space-y-4 text-right">
+                <!-- Dynamically populated -->
             </div>
         </div>
     </div>
 
-    <!-- Support Modal -->
-    <div id="support-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-slate-800 text-base">خدمة العملاء والدعم</h3>
-                <button onclick="closeSupportModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">&times;</button>
+    <div id="support-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
+            <div class="bg-slate-900 text-white p-4 sm:p-5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-headset text-brand-500 text-lg"></i>
+                    <h3 class="font-black text-sm sm:text-base">خدمة العملاء والشكاوى (واصلك سريع)</h3>
+                </div>
+                <button onclick="closeSupportModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <p class="text-xs text-slate-600">إذا تأخر طلبك أو واجهتك أي مشكلة، يمكنك التواصل معنا مباشرة عبر الأرقام التالية:</p>
-            <div class="space-y-2">
-                <a href="tel:+249912345678" class="block bg-slate-50 hover:bg-slate-100 border border-slate-200 p-3 rounded-xl text-center font-bold text-slate-800 text-sm transition">📞 0912345678 (خدمة العملاء)</a>
-                <a href="tel:+249123456789" class="block bg-slate-50 hover:bg-slate-100 border border-slate-200 p-3 rounded-xl text-center font-bold text-slate-800 text-sm transition">📞 0123456789 (الشكاوى والمقترحات)</a>
+            <div class="p-5 sm:p-6 space-y-4 text-right">
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 font-bold space-y-1">
+                    <p class="flex items-center gap-1.5 text-amber-800 font-black"><i class="fa-solid fa-clock"></i> هل تأخر طلبك أو تواجه مشكلة مع الكابتن؟</p>
+                    <p class="font-normal text-slate-700">فريق خدمة العملاء جاهز لمتابعة شكواك وحلها فوراً على مدار الساعة طوال أيام الأسبوع في السودان.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-bold block">الخط الساخن لخدمة العملاء</span>
+                            <span class="text-sm font-black text-slate-900 tracking-wider">0912000000 / 0123000000</span>
+                        </div>
+                        <a href="tel:0912000000" class="bg-brand-500 hover:bg-brand-600 text-slate-900 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-phone"></i> اتصال مباشر
+                        </a>
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-slate-500 font-bold block">قسم الشكاوي والاسترداد (واتساب)</span>
+                            <span class="text-sm font-black text-emerald-700 tracking-wider">+249 91 234 5678</span>
+                        </div>
+                        <a href="https://wa.me/249912345678" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-brands fa-whatsapp text-sm"></i> مراسلة واتساب
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-slate-100 p-3 rounded-xl text-[11px] text-slate-600 font-medium text-center">
+                    مقرنا الرئيسي: الخرطوم • شارع العرضة / استجابة سريعة لجميع الولايات.
+                </div>
             </div>
-            <button onclick="closeSupportModal()" class="bg-slate-900 text-white font-semibold py-2.5 rounded-xl text-sm mt-1">إغلاق</button>
         </div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wasil-saree-delivery-sd';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", projectId: "demo" };
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
+
+        let app, db, auth;
         let currentUser = null;
-        let mapInstance = null;
+        let orders = [];
+        let selectedActiveOrderId = null;
 
-        // نظام مزامنة سحابي ذكي ومفتوح لتجربة الهواتف الفورية
-        function getOrders() {
+        const driverProfiles = [
+            { name: 'عمر التاج', bike: 'هوجن 3 (150cc)', plate: 'خرطوم • 89234' },
+            { name: 'مصعب إبراهيم', bike: 'سوزوكي إكسبريس', plate: 'أم درمان • 12456' },
+            { name: 'مهند النور', bike: 'بجاج بوكسر', plate: 'بحري • 67812' }
+        ];
+
+        async function initFirebase() {
             try {
-                // محاولة جلب الطلبات من الذاكرة المشتركة السحابية المؤقتة المحدثة تلقائياً
-                const cloudData = localStorage.getItem('wasilak_global_sync_orders');
-                return cloudData ? JSON.parse(cloudData) : [];
-            } catch {
-                return [];
-            }
-        }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
 
-        function saveOrders(orders) {
-            localStorage.setItem('wasilak_global_sync_orders', JSON.stringify(orders));
-            // إرسال إشارة مزامنة فورية لكل الهواتف المفتوحة على نفس الرابط
-            window.dispatchEvent(new Event('storage'));
-            renderInterface();
-        }
-
-        // الاستماع الفوري للتحديثات بين الأجهزة المختلفة عبر المتصفح
-        window.addEventListener('storage', (e) => {
-            renderInterface();
-        });
-
-        // مزامنة تلقائية كل ثانية لضمان ظهور الطلب في هاتف الكابتن لحظياً
-        setInterval(() => {
-            renderInterface();
-        }, 1500);
-
-        function loginAs(role) {
-            const phone = document.getElementById('phone-input').value.trim();
-            if(phone.length < 9) {
-                alert('الرجاء إدخال رقم هاتف صحيح مكون من 9 أرقام');
-                return;
-            }
-            currentUser = { role, phone };
-            document.getElementById('auth-screen').classList.add('hidden');
-            if(role === 'client') {
-                document.getElementById('client-view').classList.remove('hidden');
-                document.getElementById('user-role-badge').innerText = `عميل: +249 ${phone}`;
-            } else {
-                document.getElementById('driver-view').classList.remove('hidden');
-                document.getElementById('user-role-badge').innerText = `كابتن: +249 ${phone}`;
-            }
-            renderInterface();
-        }
-
-        function createOrder() {
-            const pickup = document.getElementById('pickup-loc').value.trim();
-            const dropoff = document.getElementById('dropoff-loc').value.trim();
-            const desc = document.getElementById('order-desc').value.trim();
-
-            if(!pickup || !dropoff) {
-                alert('الرجاء إدخال موقع الاستلام وموقع التوصيل');
-                return;
-            }
-
-            const newOrder = {
-                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
-                clientPhone: currentUser.phone,
-                pickup,
-                dropoff,
-                desc: desc || 'لا توجد تفاصيل إضافية',
-                price: '20,000 SDG',
-                status: 'pending', // pending, accepted, on_the_way, arrived, completed
-                driver: {
-                    name: 'محمد أحمد',
-                    bikeType: 'هوجن 3 (دراجة نارية)',
-                    plateNum: 'خ-٥-١٢٣٤',
-                    phone: '0911223344'
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
                 }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        setupRealtimeSync(db);
+                    }
+                });
+            } catch (err) {
+                console.error("Firebase Init Error:", err);
+            }
+        }
+
+        function setupRealtimeSync(database) {
+            const ordersRef = collection(database, 'artifacts', appId, 'public', 'data', 'orders');
+            onSnapshot(query(ordersRef), (snapshot) => {
+                orders = [];
+                snapshot.forEach((docSnap) => {
+                    orders.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                // Sort by newest
+                orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+                if (currentUser) {
+                    if (currentUser.role === 'client') {
+                        renderClientOrders();
+                    } else {
+                        renderDriverOrders();
+                    }
+                }
+            }, (error) => {
+                console.error("Firestore sync error:", error);
+            });
+        }
+
+        window.setAuthRole = function(role) {
+            const clientLabel = document.getElementById('role-client-label');
+            const driverLabel = document.getElementById('role-driver-label');
+            
+            if (role === 'client') {
+                clientLabel.className = 'cursor-pointer border-2 border-brand-500 bg-brand-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
+                driverLabel.className = 'cursor-pointer border-2 border-slate-200 bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
+                document.querySelector('input[value="client"]').checked = true;
+            } else {
+                driverLabel.className = 'cursor-pointer border-2 border-brand-500 bg-brand-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
+                clientLabel.className = 'cursor-pointer border-2 border-slate-200 bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
+                document.querySelector('input[value="driver"]').checked = true;
+            }
+        };
+
+        window.handleAuthSubmit = function(e) {
+            e.preventDefault();
+            const phoneNum = document.getElementById('auth-phone').value.trim();
+            const selectedRole = document.querySelector('input[name="auth_role"]:checked').value;
+
+            if (phoneNum.length < 9) {
+                showToast('الرجاء إدخال رقم هاتف صحيح في السودان');
+                return;
+            }
+
+            currentUser = {
+                phone: '+249 ' + phoneNum,
+                role: selectedRole
             };
 
-            const orders = getOrders();
-            orders.unshift(newOrder);
-            saveOrders(orders);
+            document.getElementById('logged-user-badge').innerText = (selectedRole === 'client' ? '👤 عميل: ' : '🏍️ كابتن: ') + currentUser.phone;
+            document.getElementById('auth-screen').classList.add('hidden');
 
-            document.getElementById('pickup-loc').value = '';
-            document.getElementById('dropoff-loc').value = '';
-            document.getElementById('order-desc').value = '';
-            alert('تم إرسال طلبك بنجاح وسيظهر للكابتن فوراً!');
-        }
+            const clientView = document.getElementById('view-client');
+            const driverView = document.getElementById('view-driver');
 
-        function updateOrderStatus(orderId, newStatus, driverPhone = null) {
-            const orders = getOrders();
-            const order = orders.find(o => o.id === orderId);
-            if(order) {
-                order.status = newStatus;
-                if(driverPhone) {
-                    order.driver.phone = driverPhone;
-                }
-                saveOrders(orders);
+            if (selectedRole === 'client') {
+                clientView.classList.remove('hidden');
+                driverView.classList.add('hidden');
+                document.getElementById('order-phone').value = '+249 ' + phoneNum;
+                renderClientOrders();
+                showToast('مرحباً بك في واصلك سريع - لوحة العميل السحابية');
+            } else {
+                clientView.classList.add('hidden');
+                driverView.classList.remove('hidden');
+                renderDriverOrders();
+                showToast('مرحباً بك كابتن - متصل بالشبكة الحية');
             }
+        };
+
+        window.logoutApp = function() {
+            currentUser = null;
+            document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('view-client').classList.add('hidden');
+            document.getElementById('view-driver').classList.add('hidden');
+            document.getElementById('auth-phone').value = '';
+            showToast('تم تسجيل الخروج بنجاح');
+        };
+
+        window.calculateDynamicFee = function() {
+            const dropoffVal = document.getElementById('order-dropoff').value.trim();
+            let calculatedFee = 15000;
+            if (dropoffVal.length > 0) {
+                const hash = dropoffVal.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                calculatedFee = 10000 + (hash % 21) * 1000;
+            }
+            document.getElementById('order-price').value = calculatedFee.toLocaleString() + ' SDG';
+        };
+
+        window.selectCategory = function(categoryName, btnElement) {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = 'cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2';
+            });
+            btnElement.className = 'cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-brand-500 bg-brand-50 transition text-slate-900 font-bold text-xs gap-1.5 sm:gap-2 ring-2 ring-brand-500';
+            document.getElementById('order-category').value = categoryName;
+        };
+
+        window.handleCreateOrder = async function(e) {
+            e.preventDefault();
+            const category = document.getElementById('order-category').value;
+            const desc = document.getElementById('order-desc').value;
+            const pickup = document.getElementById('order-pickup').value;
+            const dropoff = document.getElementById('order-dropoff').value;
+            const phone = document.getElementById('order-phone').value;
+            const price = document.getElementById('order-price').value;
+
+            const randomDriver = driverProfiles[Math.floor(Math.random() * driverProfiles.length)];
+            const orderId = 'W-'.toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+
+            const newOrderData = {
+                id: orderId,
+                category,
+                desc,
+                pickup,
+                dropoff,
+                phone,
+                price,
+                status: 'بانتظار قبول السائق',
+                driverName: randomDriver.name,
+                driverBike: randomDriver.bike,
+                driverPlate: randomDriver.plate,
+                driverPhone: '+249 9' + Math.floor(10000000 + Math.random() * 90000000),
+                createdAt: Date.now()
+            };
+
+            try {
+                const orderDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await setDoc(orderDocRef, newOrderData);
+                selectedActiveOrderId = orderId;
+                showToast('تم إرسال الطلب سحابياً إلى السائقين!');
+                e.target.reset();
+                document.getElementById('order-phone').value = currentUser ? currentUser.phone : '';
+                document.getElementById('order-price').value = '15,000 SDG';
+            } catch (err) {
+                console.error("Error creating order:", err);
+                showToast('حدث خطأ أثناء إرسال الطلب سحابياً');
+            }
+        };
+
+        function renderClientOrders() {
+            const container = document.getElementById('client-orders-list');
+            const workflowPanel = document.getElementById('client-direct-workflow-panel');
+            if (!container || !workflowPanel) return;
+
+            if (orders.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-xs sm:text-sm text-center py-4">لا توجد طلبات نشطة حالياً.</p>`;
+                workflowPanel.classList.add('hidden');
+                return;
+            }
+
+            container.innerHTML = '';
+            orders.forEach(order => {
+                const el = document.createElement('div');
+                el.className = `p-3.5 bg-slate-50 rounded-xl border transition hover:shadow-sm flex items-center justify-between gap-3 ${selectedActiveOrderId === order.id ? 'border-brand-500 ring-2 ring-brand-500/20 bg-brand-50/30' : 'border-slate-200'}`;
+                
+                let badgeColor = 'bg-amber-100 text-amber-800';
+                if (order.status === 'بانتظار تأكيد العميل') badgeColor = 'bg-blue-100 text-blue-800';
+                if (order.status === 'موافق للبدء (جاهز للحركة)' || order.status === 'جاري التوصيل' || order.status === 'الكابتن وصل الموقع') badgeColor = 'bg-indigo-100 text-indigo-800';
+                if (order.status === 'تم توصيل الطلب بنجاح') badgeColor = 'bg-emerald-100 text-emerald-800';
+                if (order.status === 'تم إلغاء الطلب') badgeColor = 'bg-rose-100 text-rose-800';
+
+                el.innerHTML = `
+                    <div class="flex-grow min-w-0 cursor-pointer" onclick="selectActiveOrder('${order.id}')">
+                        <div class="flex items-center gap-2 text-xs">
+                            <span class="font-black text-slate-900">${order.id}</span>
+                            <span class="font-bold px-2 py-0.5 rounded-full ${badgeColor}">${order.status}</span>
+                        </div>
+                        <p class="text-slate-800 font-bold text-xs mt-1 truncate">${order.desc}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        <button onclick="selectActiveOrder('${order.id}')" class="bg-slate-900 hover:bg-slate-800 text-brand-400 px-2.5 py-2 rounded-xl text-xs font-bold transition shadow-sm" title="عرض التفاصيل">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button onclick="openOrderModal('${order.id}')" class="bg-brand-500 hover:bg-brand-600 text-slate-900 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="الخريطة">
+                            <i class="fa-solid fa-map-location-dot"></i> الخريطة
+                        </button>
+                    </div>
+                `;
+                container.appendChild(el);
+            });
+
+            if (!selectedActiveOrderId || !orders.some(o => o.id === selectedActiveOrderId)) {
+                selectedActiveOrderId = orders[0].id;
+            }
+            renderDirectWorkflowContent(selectedActiveOrderId);
+            workflowPanel.classList.remove('hidden');
         }
 
-        function renderInterface() {
-            if(!currentUser) return;
-            const orders = getOrders();
+        window.selectActiveOrder = function(orderId) {
+            selectedActiveOrderId = orderId;
+            renderClientOrders();
+        };
 
-            if(currentUser.role === 'client') {
-                const clientList = document.getElementById('client-orders-list');
-                const myOrders = orders.filter(o => o.clientPhone === currentUser.phone);
-                
-                if(myOrders.length === 0) {
-                    clientList.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات نشطة حالياً</p>`;
-                    return;
+        function renderDirectWorkflowContent(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            const contentEl = document.getElementById('direct-workflow-content');
+            if (!order || !contentEl) return;
+
+            let interactiveActionHTML = '';
+
+            if (order.status === 'بانتظار تأكيد العميل') {
+                interactiveActionHTML = `
+                    <div class="bg-amber-50 border border-amber-300 p-4 rounded-2xl space-y-3">
+                        <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-amber-200">
+                            <div class="w-10 h-10 bg-slate-900 text-brand-500 rounded-xl flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-motorcycle"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-500 block font-bold">الكابتن المسؤول:</span>
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${order.driverName}</h4>
+                                <p class="text-[11px] text-slate-600">${order.driverBike} • لوحة: ${order.driverPlate}</p>
+                            </div>
+                        </div>
+                        <p class="text-xs font-bold text-amber-900">وافق الكابتن على طلبك! هل تؤكد انطلاق الطلبية أم ترغب في الإلغاء؟</p>
+                        <div class="flex gap-2">
+                            <button onclick="confirmClientStart('${order.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-check"></i> تأكيد الانطلاق
+                            </button>
+                            <button onclick="confirmClientCancel('${order.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-ban"></i> إلغاء الطلب
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (order.status === 'موافق للبدء (جاهز للحركة)' || order.status === 'جاري التوصيل' || order.status === 'الكابتن وصل الموقع') {
+                let paymentBlock = '';
+                if (order.status === 'الكابتن وصل الموقع') {
+                    paymentBlock = `
+                        <div class="bg-brand-50 border border-brand-500 p-4 rounded-2xl space-y-3 mt-3">
+                            <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+                                <span>اختر طريقة دفع أجرة التوصيل (بعد الاستلام):</span>
+                                <span class="text-brand-700 font-black">${order.price}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                                <label class="cursor-pointer border-2 border-brand-500 bg-white p-2.5 rounded-xl flex items-center gap-2 text-slate-900">
+                                    <input type="radio" name="client_payment_direct_${order.id}" value="نقداً" checked class="text-brand-600">
+                                    <i class="fa-solid fa-money-bill-wave text-brand-600"></i> نقداً للكابتن
+                                </label>
+                                <label class="cursor-pointer border-2 border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 text-slate-700">
+                                    <input type="radio" name="client_payment_direct_${order.id}" value="بنكك / تحويل" class="text-brand-600">
+                                    <i class="fa-solid fa-mobile-screen text-blue-600"></i> تحويل بنكك
+                                </label>
+                            </div>
+                            <button onclick="confirmPaymentAndComplete('${order.id}')" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-900 py-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 shadow">
+                                <i class="fa-solid fa-circle-check"></i> تأكيد دفع مبلغ التوصيل وإتمام الطلبية
+                            </button>
+                        </div>
+                    `;
                 }
 
-                clientList.innerHTML = myOrders.map(o => `
-                    <div class="border border-slate-200 rounded-xl p-3 flex flex-col gap-2 bg-slate-50">
-                        <div class="flex justify-between items-center text-xs font-bold text-slate-700">
-                            <span>رقم الطلب: ${o.id}</span>
-                            <span class="px-2 py-0.5 rounded-full ${getStatusBadgeClass(o.status)}">${getStatusText(o.status)}</span>
-                        </div>
-                        <div class="text-xs text-slate-600 space-y-1">
-                            <p><b>من:</b> ${o.pickup}</p>
-                            <p><b>إلى:</b> ${o.dropoff}</p>
-                            <p><b>التكلفة:</b> ${o.price}</p>
-                        </div>
-                        ${o.status !== 'pending' ? `
-                            <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs space-y-1 mt-1">
-                                <p class="font-bold text-slate-800">👤 الكابتن: ${o.driver.name}</p>
-                                <p class="text-slate-600">🏍️ ${o.driver.bikeType} | اللوحة: ${o.driver.plateNum}</p>
-                                <a href="tel:${o.driver.phone}" class="inline-block bg-green-50 text-green-700 font-bold px-3 py-1 rounded-md mt-1 border border-green-200">📞 اتصال بالكابتن (${o.driver.phone})</a>
-                            </div>
-                        ` : ''}
-
-                        ${o.status === 'arrived' ? `
-                            <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-xl mt-2 flex flex-col gap-2">
-                                <p class="text-xs font-bold text-slate-800">طريقة الدفع (أجرة التوصيل):</p>
-                                <div class="flex gap-2">
-                                    <button onclick="payOrder('${o.id}', 'نقداً')" class="flex-1 bg-slate-900 text-white font-bold py-1.5 rounded-lg text-xs">نقداً (كاش)</button>
-                                    <button onclick="payOrder('${o.id}', 'بنكك')" class="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg text-xs">تطبيق بنكك</button>
+                interactiveActionHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <div class="w-9 h-9 bg-slate-900 text-brand-500 rounded-lg flex items-center justify-center font-bold text-xs">
+                                    <i class="fa-solid fa-motorcycle"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] text-slate-500 block font-bold">الكابتن: ${order.driverName}</span>
+                                    <span class="text-[11px] text-slate-700 font-bold">${order.driverBike} • لوحة: ${order.driverPlate}</span>
                                 </div>
                             </div>
-                        ` : ''}
-
-                        <button onclick="openMapModal('${o.id}')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-xs mt-1 transition">تتبع الطلب والخريطة</button>
+                            <a href="tel:${order.driverPhone}" class="bg-brand-500 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-phone"></i> اتصال
+                            </a>
+                        </div>
+                        <div class="text-xs bg-indigo-50 text-indigo-900 p-3 rounded-xl font-bold border border-indigo-200 text-center">
+                            ${order.status === 'الكابتن وصل الموقع' ? '📍 وصل الكابتن إلى وجهة التوصيل!' : order.status === 'موافق للبدء (جاهز للحركة)' ? '✅ تم تأكيد الانطلاق - الكابتن يستعد للحركة' : '🏍️ الكابتن في طريقه إليك الآن...'}
+                        </div>
+                        ${paymentBlock}
                     </div>
-                `).join('');
-
-            } else if(currentUser.role === 'driver') {
-                const driverList = document.getElementById('driver-orders-list');
-                const availableOrders = orders.filter(o => o.status === 'pending' || o.driver.phone === currentUser.phone);
-
-                if(availableOrders.length === 0) {
-                    driverList.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات جديدة متاحة حالياً</p>`;
-                    return;
-                }
-
-                driverList.innerHTML = availableOrders.map(o => `
-                    <div class="border border-slate-200 rounded-xl p-3 flex flex-col gap-2 bg-slate-50">
-                        <div class="flex justify-between items-center text-xs font-bold text-slate-700">
-                            <span>طلب: ${o.id}</span>
-                            <span class="px-2 py-0.5 rounded-full ${getStatusBadgeClass(o.status)}">${getStatusText(o.status)}</span>
-                        </div>
-                        <div class="text-xs text-slate-600 space-y-1">
-                            <p><b>الاستلام:</b> ${o.pickup}</p>
-                            <p><b>التسليم:</b> ${o.dropoff}</p>
-                            <p><b>التفاصيل:</b> ${o.desc}</p>
-                            <p><b>الأجرة:</b> ${o.price}</p>
-                        </div>
-                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-xs mt-1">
-                            <p class="font-bold text-slate-800">📱 هاتف العميل: +249 ${o.clientPhone}</p>
-                            <a href="tel:+249${o.clientPhone}" class="inline-block bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-md mt-1 border border-blue-200">اتصال بالعميل</a>
-                        </div>
-                        <div class="flex flex-col gap-1.5 mt-2">
-                            ${o.status === 'pending' ? `
-                                <button onclick="updateOrderStatus('${o.id}', 'accepted', '${currentUser.phone}')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-2 rounded-lg text-xs">1. استلام الطلبية (قبول)</button>
-                            ` : ''}
-                            ${o.status === 'accepted' ? `
-                                <button onclick="updateOrderStatus('${o.id}', 'on_the_way')" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">2. أنا في الطريق</button>
-                            ` : ''}
-                            ${o.status === 'on_the_way' ? `
-                                <button onclick="updateOrderStatus('${o.id}', 'arrived')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">3. أنا وصلت وجهة التسليم</button>
-                            ` : ''}
-                            ${o.status === 'arrived' ? `
-                                <p class="text-xs text-center font-bold text-yellow-600 py-1">في انتظار تأكيد الدفع من العميل</p>
-                            ` : ''}
-                            ${o.status === 'completed' ? `
-                                <p class="text-xs text-center font-bold text-slate-500 py-1">تم إكمال الطلب بنجاح</p>
-                            ` : ''}
-                        </div>
+                `;
+            } else if (order.status === 'تم توصيل الطلب بنجاح') {
+                interactiveActionHTML = `
+                    <div class="bg-emerald-50 border border-emerald-300 p-3 rounded-xl text-emerald-800 text-xs font-bold text-center">
+                        ✔ تم إتمام الطلبية ودفع الأجرة بنجاح. شكراً لاستخدامك واصلك سريع!
                     </div>
-                `).join('');
-            }
-        }
-
-        function payOrder(orderId, method) {
-            updateOrderStatus(orderId, 'completed');
-            alert(`تم تأكيد الدفع عبر (${method}) بنجاح! شكراً لاستخدامك واصلك سريع.`);
-        }
-
-        function getStatusText(status) {
-            switch(status) {
-                case 'pending': return 'قيد الانتظار';
-                case 'accepted': return 'تم قبول الطلب';
-                case 'on_the_way': return 'الكابتن في الطريق';
-                case 'arrived': return 'وصل الكابتن';
-                case 'completed': return 'مكتملة';
-                default: return 'نشط';
-            }
-        }
-
-        function getStatusBadgeClass(status) {
-            switch(status) {
-                case 'pending': return 'bg-amber-100 text-amber-800';
-                case 'accepted': return 'bg-blue-100 text-blue-800';
-                case 'on_the_way': return 'bg-indigo-100 text-indigo-800';
-                case 'arrived': return 'bg-emerald-100 text-emerald-800';
-                case 'completed': return 'bg-slate-200 text-slate-700';
-                default: return 'bg-slate-100 text-slate-800';
-            }
-        }
-
-        function openMapModal(orderId) {
-            document.getElementById('map-modal').classList.remove('hidden');
-            const orders = getOrders();
-            const order = orders.find(o => o.id === orderId);
-            
-            if(order) {
-                document.getElementById('modal-order-details').innerHTML = `
-                    <p><b>رقم الطلب:</b> ${order.id}</p>
-                    <p><b>من:</b> ${order.pickup}</p>
-                    <p><b>إلى:</b> ${order.dropoff}</p>
-                    <p><b>الحالة الحالية:</b> <span class="text-indigo-600 font-bold">${getStatusText(order.status)}</span></p>
+                `;
+            } else if (order.status === 'تم إلغاء الطلب') {
+                interactiveActionHTML = `
+                    <div class="bg-rose-50 border border-rose-300 p-3 rounded-xl text-rose-800 text-xs font-bold text-center">
+                        ❌ تم إلغاء هذا الطلب.
+                    </div>
+                `;
+            } else {
+                interactiveActionHTML = `
+                    <div class="bg-slate-100 p-3 rounded-xl text-slate-600 text-xs font-bold text-center">
+                        ⏳ جاري البحث عن أقرب كابتن متاح في الشبكة...
+                    </div>
                 `;
             }
 
-            setTimeout(() => {
-                if(!mapInstance) {
-                    mapInstance = L.map('map').setView([15.5007, 32.5599], 13);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; OpenStreetMap contributors'
-                    }).addTo(mapInstance);
-                    L.marker([15.5007, 32.5599]).addTo(mapInstance).bindPopup('موقع التوصيل الحالي').openPopup();
-                } else {
-                    mapInstance.invalidateSize();
+            contentEl.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-500">رقم الطلب: <strong class="text-slate-900">${order.id}</strong></span>
+                            <span class="bg-brand-100 text-slate-900 font-bold px-2.5 py-1 rounded-full">${order.status}</span>
+                        </div>
+                        <p class="font-bold text-slate-900 text-sm">${order.desc}</p>
+                        <div class="text-xs text-slate-600 space-y-1 pt-1 border-t border-slate-200">
+                            <p><strong>من (الاستلام):</strong> ${order.pickup}</p>
+                            <p><strong>إلى (التوصيل):</strong> ${order.dropoff}</p>
+                            <p><strong>الأجرة:</strong> <span class="text-brand-700 font-bold">${order.price}</span></p>
+                        </div>
+                    </div>
+                    ${interactiveActionHTML}
+                </div>
+            `;
+        }
+
+        window.openOrderModal = function(orderId) {
+            selectedActiveOrderId = orderId;
+            const order = orders.find(o => o.id === orderId);
+            const modal = document.getElementById('order-modal');
+            const titleEl = document.getElementById('modal-order-title');
+            const bodyEl = document.getElementById('modal-order-body');
+
+            if (!order) return;
+
+            titleEl.innerText = `خريطة تتبع الطلب: ${order.id}`;
+
+            bodyEl.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+                        <span class="font-bold text-slate-700">${order.desc}</span>
+                        <span class="text-brand-700 font-black">${order.price}</span>
+                    </div>
+                    <div>
+                        <div class="h-64 bg-[#e5e3df] rounded-2xl relative overflow-hidden border border-slate-300 flex items-center justify-center shadow-inner">
+                            <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px]"></div>
+                            <svg class="absolute inset-0 w-full h-full stroke-[#1a73e8] stroke-[4] fill-none z-10" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M 40 120 Q 200 20, 360 120" stroke-linecap="round" stroke-dasharray="6" />
+                            </svg>
+                            <div class="absolute top-[45%] left-[15%] transform -translate-x-1/2 -translate-y-1/2 z-20 text-center">
+                                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs shadow-md">
+                                    <i class="fa-solid fa-store"></i>
+                                </div>
+                                <span class="text-[9px] bg-white px-1.5 py-0.5 rounded font-bold text-slate-800 shadow mt-1 inline-block">الاستلام</span>
+                            </div>
+                            <div class="absolute top-[45%] left-[85%] transform -translate-x-1/2 -translate-y-1/2 z-20 text-center">
+                                <div class="w-8 h-8 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs shadow-md">
+                                    <i class="fa-solid fa-house"></i>
+                                </div>
+                                <span class="text-[9px] bg-white px-1.5 py-0.5 rounded font-bold text-slate-800 shadow mt-1 inline-block">الوجهة</span>
+                            </div>
+                            <div class="absolute ${order.status === 'جاري التوصيل' || order.status === 'الكابتن وصل الموقع' || order.status === 'تم توصيل الطلب بنجاح' ? 'top-[45%] left-[85%]' : 'top-[45%] left-[15%]' } transform -translate-x-1/2 -translate-y-1/2 transition-all duration-1000 z-30">
+                                <div class="w-9 h-9 bg-brand-500 text-slate-900 rounded-full flex items-center justify-center text-sm shadow-xl font-bold border-2 border-white">
+                                    <i class="fa-solid fa-motorcycle"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeOrderModal = function() {
+            const modal = document.getElementById('order-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        };
+
+        window.openSupportModal = function() {
+            const modal = document.getElementById('support-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeSupportModal = function() {
+            const modal = document.getElementById('support-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        };
+
+        function renderDriverOrders() {
+            const container = document.getElementById('driver-orders-list');
+            if (!container) return;
+            const driverOrders = orders.filter(o => o.status !== 'تم إلغاء الطلب');
+
+            if (driverOrders.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 font-medium text-xs sm:text-sm">لا توجد طلبات جديدة في السحابة حالياً.</div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            driverOrders.forEach(order => {
+                const el = document.createElement('div');
+                el.className = 'p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-sm text-right';
+                
+                let actionBtnHTML = '';
+                if (order.status === 'بانتظار قبول السائق') {
+                    actionBtnHTML = `
+                        <button onclick="driverStepAccept('${order.id}')" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition text-center text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-check-circle"></i> 1. استلام الطلبية
+                        </button>
+                    `;
+                } else if (order.status === 'بانتظار تأكيد العميل') {
+                    actionBtnHTML = `<div class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl font-bold text-center border border-amber-200">بانتظار تأكيد العميل لتتمكن من الحركة...</div>`;
+                } else if (order.status === 'موافق للبدء (جاهز للحركة)') {
+                    actionBtnHTML = `
+                        <button onclick="driverStepOnTheWay('${order.id}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition text-center text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-motorcycle"></i> 2. أنا في الطريق
+                        </button>
+                    `;
+                } else if (order.status === 'جاري التوصيل') {
+                    actionBtnHTML = `
+                        <button onclick="driverStepArrived('${order.id}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition text-center text-xs sm:text-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-location-arrow"></i> 3. أنا وصلت
+                        </button>
+                    `;
+                } else if (order.status === 'الكابتن وصل الموقع') {
+                    actionBtnHTML = `<div class="text-xs text-indigo-700 bg-indigo-50 p-2.5 rounded-xl font-bold text-center border border-indigo-200">وصلت الموقع - بانتظار دفع العميل وإتمام الطلب</div>`;
+                } else if (order.status === 'تم توصيل الطلب بنجاح') {
+                    actionBtnHTML = `<div class="text-xs text-emerald-700 bg-emerald-50 p-2.5 rounded-xl font-bold text-center border border-emerald-200">تم إتمام الطلب وتحصيل الأجرة بنجاح ✔</div>`;
                 }
-            }, 300);
+
+                el.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-black text-slate-900 text-base sm:text-lg">${order.id}</span>
+                        <span class="bg-brand-500 text-slate-900 font-bold px-3 py-1 rounded-full text-xs sm:text-sm">${order.price}</span>
+                    </div>
+                    <div class="space-y-1.5 text-xs sm:text-sm">
+                        <p class="font-bold text-slate-900"><span class="bg-brand-100 text-slate-900 px-2 py-0.5 rounded text-[11px] ml-1">${order.category}</span> ${order.desc}</p>
+                        <p class="text-slate-600"><strong class="text-slate-900">من:</strong> ${order.pickup}</p>
+                        <p class="text-slate-600"><strong class="text-slate-900">إلى:</strong> ${order.dropoff}</p>
+                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 mt-2">
+                            <span class="text-slate-700 font-bold"><i class="fa-solid fa-phone text-brand-600 ml-1"></i> رقم العميل: <strong class="text-slate-900">${order.phone}</strong></span>
+                            <a href="tel:${order.phone}" class="bg-brand-500 hover:bg-brand-600 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <i class="fa-solid fa-phone-volume"></i> اتصال بالعميل
+                            </a>
+                        </div>
+                        <p class="text-slate-600 pt-1"><strong class="text-slate-900">الحالة:</strong> <span class="text-brand-700 font-bold">${order.status}</span></p>
+                    </div>
+                    ${actionBtnHTML}
+                `;
+                container.appendChild(el);
+            });
         }
 
-        function closeMapModal() {
-            document.getElementById('map-modal').classList.add('hidden');
+        window.driverStepAccept = async function(orderId) {
+            try {
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'بانتظار تأكيد العميل' });
+                showToast(`تم قبول الطلب ${orderId}! في انتظار تأكيد العميل.`);
+            } catch (err) {
+                console.error(err);
+                showToast('خطأ في الاتصال السحابي');
+            }
+        };
+
+        window.driverStepOnTheWay = async function(orderId) {
+            try {
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'جاري التوصيل' });
+                showToast('أنت الآن في الطريق إلى وجهة التوصيل.');
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.driverStepArrived = async function(orderId) {
+            try {
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'الكابتن وصل الموقع' });
+                showToast('تم إعلام العميل بوصولك إلى الموقع!');
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.confirmClientStart = async function(orderId) {
+            try {
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'موافق للبدء (جاهز للحركة)' });
+                showToast('تم تأكيد انطلاق الطلبية!');
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.confirmClientCancel = async function(orderId) {
+            try {
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'تم إلغاء الطلب' });
+                showToast('تم إلغاء الطلب.');
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        window.confirmPaymentAndComplete = async function(orderId) {
+            try {
+                const paymentInput = document.querySelector(`input[name="client_payment_direct_${orderId}"]:checked`);
+                const selectedPayment = paymentInput ? paymentInput.value : 'نقداً';
+                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
+                await updateDoc(orderRef, { status: 'تم توصيل الطلب بنجاح', paymentMethod: selectedPayment });
+                showToast(`تم دفع مبلغ التوصيل (${selectedPayment}) وإتمام الطلبية بنجاح!`);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const messageEl = document.getElementById('toast-message');
+            if (!toast || !messageEl) return;
+            
+            messageEl.innerText = message;
+            toast.classList.remove('translate-y-28', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-28', 'opacity-0');
+            }, 3500);
         }
 
-        function openSupportModal() {
-            document.getElementById('support-modal').classList.remove('hidden');
-        }
-
-        function closeSupportModal() {
-            document.getElementById('support-modal').classList.add('hidden');
-        }
+        // Initialize Cloud Sync on load
+        window.onload = function() {
+            initFirebase();
+        };
     </script>
 </body>
 </html>
