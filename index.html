@@ -2,680 +2,413 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تطبيق أوراد - أبناء الفكي الأمين ود أم حقين</title>
-    <!-- Tailwind CSS for modern styling -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واصلك سريع</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Amiri and Cairo for Arabic elegance -->
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
-                        amiri: ['Amiri', 'serif'],
-                    },
-                    colors: {
-                        islamic: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                            800: '#065f46',
-                            900: '#064e3b',
-                            gold: '#d97706',
-                            darkGold: '#b45309',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #0f172a; /* Dark desktop backdrop */
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* Prevent body scroll, constrain to phone container */
-            height: 100vh;
-            display: flex;
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        .logo-frame {
+            border: 4px solid #FACC15;
+            border-radius: 50%;
+            padding: 8px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-        }
-        .quran-font {
-            font-family: 'Amiri', serif;
-        }
-        ::-webkit-scrollbar {
-            width: 3px;
-            height: 3px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #059669;
-            border-radius: 2px;
-        }
-        .pulse-subtle {
-            animation: pulseSubtle 2s infinite;
-        }
-        @keyframes pulseSubtle {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-        }
-        /* Strict mobile shell container styling - Fixed and stable */
-        .mobile-shell {
-            width: 100%;
-            max-width: 412px;
-            height: 100vh;
-            max-height: 844px;
-            background-color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        @media (min-width: 640px) {
-            .mobile-shell {
-                border-radius: 40px;
-                border: 8px solid #1e293b;
-                height: 844px;
-            }
+            background-color: #1E293B;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <div class="mobile-shell">
-        
-        <!-- Mobile Notch / Top bar indicator -->
-        <div class="hidden sm:flex absolute top-0 left-1/2 -translate-x-1/2 w-32 h-5 bg-slate-800 rounded-b-2xl z-50 items-center justify-center">
-            <div class="w-12 h-1 bg-slate-600 rounded-full"></div>
-        </div>
-
-        <!-- Header -->
-        <header class="bg-islamic-900 text-white shadow-md pt-3 pb-3 px-4 z-40 sm:pt-6 shrink-0">
-            <div class="flex justify-between items-center gap-2">
-                <div class="flex items-center space-x-2.5 space-x-reverse">
-                    <div class="w-9 h-9 rounded-full bg-islamic-gold flex items-center justify-center text-white shadow-md">
-                        <i class="fa-solid fa-book-quran text-lg"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-base font-bold font-amiri tracking-wide leading-tight">تطبيق أوراد</h1>
-                        <p class="text-[10px] text-islamic-gold font-semibold tracking-wider">أبناء الفكي الأمين ود أم حقين</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-1.5 space-x-reverse">
-                    <!-- Points Badge in Header -->
-                    <div class="bg-islamic-800/90 border border-islamic-600 px-2.5 py-1 rounded-xl flex items-center gap-1 text-islamic-gold font-bold text-xs shadow-inner">
-                        <i class="fa-solid fa-coins text-xs"></i>
-                        <span id="headerPoints">0</span>
-                    </div>
-                    <button onclick="openSettings()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-islamic-800 transition text-islamic-100 hover:text-white" title="الإعدادات">
-                        <i class="fa-solid fa-gear text-sm"></i>
-                    </button>
-                    <button onclick="openStats()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-islamic-800 transition text-islamic-100 hover:text-white" title="الإحصائيات">
-                        <i class="fa-solid fa-chart-pie text-sm"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Scrollable Area -->
-        <main class="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
-            
-            <!-- Hero Card with Application Description instead of Hijri date -->
-            <section class="bg-gradient-to-r from-islamic-800 to-islamic-900 rounded-2xl p-4 text-white shadow-md relative overflow-hidden shrink-0">
-                <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-islamic-700 rounded-full opacity-25 pointer-events-none"></div>
-                <div class="relative z-10 flex justify-between items-center gap-3">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="bg-islamic-gold text-white text-[10px] px-2.5 py-0.5 rounded-full font-semibold shadow-sm">تعريف التطبيق</span>
-                            <span class="bg-white/10 backdrop-blur-sm text-islamic-100 text-[10px] px-2.5 py-0.5 rounded-full border border-white/10" id="userLevelBadge">مبتدئ</span>
-                        </div>
-                        <h2 class="text-xs font-medium font-cairo text-islamic-100 leading-relaxed">تطبيق إيماني لضبط الأوراد اليومية، الأذكار، والتسبيح لكسب الأجر ونيل الدرجات العالية.</h2>
-                    </div>
-                    <div class="bg-islamic-800/90 px-3 py-2 rounded-xl border border-islamic-700/50 backdrop-blur-sm flex items-center gap-2 shrink-0">
-                        <div>
-                            <div class="text-[10px] text-islamic-100 opacity-80">النقاط</div>
-                            <div class="text-base font-bold text-islamic-gold" id="dailyTotalPoints">0</div>
-                        </div>
-                        <div class="w-8 h-8 rounded-full border-2 border-islamic-600 border-t-islamic-gold flex items-center justify-center font-bold text-xs" id="progressCircleText">
-                            0/4
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Navigation Tabs -->
-            <div class="flex bg-white p-1 rounded-xl shadow-sm border border-slate-100 shrink-0">
-                <button onclick="switchTab('wird')" id="tab-wird" class="flex-1 py-2 px-1 rounded-lg font-semibold text-xs transition flex flex-col items-center justify-center gap-1 bg-islamic-900 text-white shadow-sm">
-                    <i class="fa-solid fa-list-check"></i> الإنجاز
-                </button>
-                <button onclick="switchTab('adhkar')" id="tab-adhkar" class="flex-1 py-2 px-1 rounded-lg font-semibold text-xs transition flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-sun"></i> الأذكار
-                </button>
-                <button onclick="switchTab('tasbih')" id="tab-tasbih" class="flex-1 py-2 px-1 rounded-lg font-semibold text-xs transition flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-hand-pointer"></i> المسبحة
-                </button>
-                <button onclick="switchTab('duaa')" id="tab-duaa" class="flex-1 py-2 px-1 rounded-lg font-semibold text-xs transition flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-slate-50">
-                    <i class="fa-solid fa-hands-praying"></i> الأدعية
-                </button>
-            </div>
-
-            <div id="content-wird" class="tab-content space-y-3">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
-                        <i class="fa-solid fa-bookmark text-islamic-600"></i> الإنجاز اليومي (50 نقطة لكل إنجاز)
-                    </h3>
-                    <button onclick="resetWird()" class="text-[11px] text-islamic-600 hover:underline font-medium">إعادة تعيين</button>
-                </div>
-
-                <div class="space-y-2.5" id="wirdList">
-                    <!-- Wird cards injected via JS -->
-                </div>
-            </div>
-
-            <div id="content-adhkar" class="tab-content hidden space-y-3">
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="loadAdhkarCategory('morning')" id="btn-morning" class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-bold text-xs flex flex-col items-center justify-center gap-1 transition shadow-sm">
-                        <i class="fa-solid fa-sun text-amber-600 text-base"></i> الصباح
-                    </button>
-                    <button onclick="loadAdhkarCategory('evening')" id="btn-evening" class="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold text-xs flex flex-col items-center justify-center gap-1 transition shadow-sm">
-                        <i class="fa-solid fa-moon text-indigo-600 text-base"></i> المساء
-                    </button>
-                    <button onclick="loadAdhkarCategory('sleep')" id="btn-sleep" class="p-2.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 font-bold text-xs flex flex-col items-center justify-center gap-1 transition shadow-sm">
-                        <i class="fa-solid fa-bed text-purple-600 text-base"></i> النوم
-                    </button>
-                </div>
-
-                <div id="adhkarContainer" class="space-y-3">
-                    <!-- Adhkar items injected here -->
-                </div>
-            </div>
-
-            <div id="content-tasbih" class="tab-content hidden space-y-4">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center flex flex-col items-center">
-                    <div class="w-full mb-3">
-                        <select id="tasbihType" onchange="changeTasbihTarget()" class="w-full bg-slate-100 border border-slate-200 text-slate-700 py-2 px-3 rounded-xl font-medium text-xs focus:outline-none focus:ring-2 focus:ring-islamic-500">
-                            <option value="سبحان الله">سبحان الله (33)</option>
-                            <option value="الحمد لله">الحمد لله (33)</option>
-                            <option value="الله أكبر">الله أكبر (34)</option>
-                            <option value="لا إله إلا الله وحدها لا شريك له">لا إله إلا الله (100)</option>
-                            <option value="استغفر الله العظيم">استغفر الله العظيم (100)</option>
-                            <option value="صلى الله على محمد">الصلاة على النبي (100)</option>
-                        </select>
-                    </div>
-
-                    <!-- Big Interactive Counter Button -->
-                    <div class="my-3 flex justify-center">
-                        <button onclick="incrementCounter()" class="w-40 h-40 rounded-full bg-gradient-to-b from-islamic-500 to-islamic-700 text-white shadow-lg hover:shadow-xl active:scale-95 transition flex flex-col items-center justify-center border-4 border-islamic-100 pulse-subtle group select-none">
-                            <span class="text-4xl font-black font-amiri" id="counterValue">0</span>
-                            <span class="text-[10px] uppercase tracking-widest opacity-80 mt-1" id="counterTargetLabel">من 33</span>
-                            <span class="text-[10px] bg-islamic-800/40 px-2.5 py-0.5 rounded-full mt-1.5 group-hover:bg-islamic-800 transition">+1 نقطة</span>
-                        </button>
-                    </div>
-
-                    <div class="flex justify-center gap-2 w-full">
-                        <button onclick="resetCounter()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-rotate-right"></i> تصفير
-                        </button>
-                        <button onclick="vibrateDevice()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-mobile-screen-button"></i> اهتزاز
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="content-duaa" class="tab-content hidden space-y-3">
-                <h3 class="font-bold text-xs text-slate-800 mb-1 flex items-center gap-1.5">
-                    <i class="fa-solid fa-hands-praying text-islamic-600"></i> جوامع الدعاء والأدعية القرآنية
-                </h3>
-                <div class="space-y-3" id="duaaList">
-                    <!-- Duaa cards injected here -->
-                </div>
-            </div>
-
-        </main>
-
-        <!-- Footer -->
-        <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2 text-center text-[10px] text-slate-400 z-30 shadow-lg">
-            تطبيق أوراد المبارك - أبناء الفكي الأمين ود أم حقين © 2026
-        </div>
-
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center gap-2 text-xs">
-        <i class="fa-solid fa-circle-check text-islamic-500 text-base"></i>
-        <span id="toastMessage">تم الحفظ بنجاح</span>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-sm text-slate-800">إعدادات التطبيق</h3>
-                <button onclick="closeSettings()" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
-            <div class="space-y-2 text-xs">
-                <label class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl cursor-pointer">
-                    <span class="font-medium text-slate-700">التنبيهات اليومية (تذكير)</span>
-                    <input type="checkbox" id="settingNotifications" class="w-4 h-4 accent-islamic-600 rounded" checked onchange="saveSettings()">
-                </label>
-                <label class="flex items-center justify-between p-2.5 bg-slate-50 rounded-xl cursor-pointer">
-                    <span class="font-medium text-slate-700">الاهتزاز عند التسبيح</span>
-                    <input type="checkbox" id="settingVibrate" class="w-4 h-4 accent-islamic-600 rounded" checked onchange="saveSettings()">
-                </label>
-                <div class="pt-1">
-                    <button onclick="exportUserData()" class="w-full bg-islamic-50 hover:bg-islamic-100 text-islamic-800 font-semibold py-2 rounded-xl transition text-center text-xs">
-                        <i class="fa-solid fa-download ml-1"></i> تصدير البيانات
-                    </button>
-                </div>
-            </div>
-            <div class="pt-1">
-                <button onclick="closeSettings()" class="w-full bg-islamic-900 hover:bg-islamic-800 text-white font-semibold py-2 rounded-xl transition text-xs">
-                    تم
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stats Modal -->
-    <div id="statsModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-5 max-w-xs w-full shadow-2xl space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="font-bold text-sm text-slate-800">إحصائيات النقاط</h3>
-                <button onclick="closeStats()" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-base"></i>
-                </button>
-            </div>
-            <div class="space-y-2.5 text-center py-1">
-                <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200">
-                    <div class="text-xl font-extrabold text-amber-600 font-amiri"><span id="statsTotalPoints">0</span> نقطة</div>
-                    <div class="text-[11px] text-slate-600 mt-0.5" id="statsUserLevelDesc">مستوى مبتدئ</div>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <div class="text-base font-bold text-slate-800" id="statsTotalTasbih">0</div>
-                        <div class="text-[10px] text-slate-500">إجمالي الأذكار والتسبيح</div>
-                    </div>
-                    <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        <div class="text-base font-bold text-slate-800" id="statsWirdDone">0/4</div>
-                        <div class="text-[10px] text-slate-500">أجزاء الورد اليومي</div>
-                    </div>
-                </div>
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-md py-4 px-6 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="logo-frame w-12 h-12">
+                <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
             <div>
-                <button onclick="closeStats()" class="w-full bg-islamic-900 hover:bg-islamic-800 text-white font-semibold py-2 rounded-xl transition text-xs">
-                    إغلاق
-                </button>
+                <h1 class="text-xl font-bold tracking-wide">واصلك سريع</h1>
+            </div>
+        </div>
+        <div id="user-role-badge" class="text-xs bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">جاري التحديد...</div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-4">
+
+        <!-- Login / Role Selection Screen -->
+        <div id="auth-screen" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col gap-6 my-auto">
+            <div class="text-center flex flex-col items-center gap-3">
+                <div class="logo-frame w-20 h-20 shadow-lg">
+                    <svg class="w-10 h-10 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900">مرحباً بك في واصلك سريع</h2>
+                <p class="text-sm text-slate-500">منصة التوصيل الفوري الذكية في السودان</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">رقم الهاتف (رمز السودان)</label>
+                    <div class="flex gap-2">
+                        <span class="bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 flex items-center">+249</span>
+                        <input type="tel" id="phone-input" placeholder="912345678" class="flex-1 border border-slate-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" maxlength="9">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button onclick="loginAs('client')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 px-4 rounded-xl shadow transition text-sm">دخول كعميل</button>
+                    <button onclick="loginAs('driver')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow transition text-sm">دخول ككابتن</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Interface -->
+        <div id="client-view" class="hidden flex flex-col gap-4">
+            <!-- New Order Box -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-4">
+                <h3 class="font-bold text-slate-800 text-base border-b pb-2">طلب توصيل جديد</h3>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">عنوان الاستلام</label>
+                    <input type="text" id="pickup-loc" placeholder="مثال: الخرطوم، برري" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">عنوان التوصيل</label>
+                    <input type="text" id="dropoff-loc" placeholder="مثال: أمدرمان، الملازمين" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">نوع الغرض وتفاصيل الطلب</label>
+                    <textarea id="order-desc" rows="2" placeholder="اكتب تفاصيل الطلب هنا..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"></textarea>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl flex justify-between items-center text-sm">
+                    <span class="text-slate-600 font-medium">سعر التوصيل المقدر:</span>
+                    <span class="font-bold text-slate-900" id="estimated-price">15,000 SDG</span>
+                </div>
+                <button onclick="createOrder()" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-3 rounded-xl shadow transition text-sm">إرسال الطلب الآن</button>
+            </div>
+
+            <!-- Active Orders List -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-3">
+                <h3 class="font-bold text-slate-800 text-base border-b pb-2">طلباتك النشطة</h3>
+                <div id="client-orders-list" class="flex flex-col gap-3">
+                    <p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات نشطة حالياً</p>
+                </div>
+            </div>
+
+            <!-- Customer Support Button -->
+            <button onclick="openSupportModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-4 rounded-xl border border-slate-200 text-sm flex items-center justify-center gap-2 transition">
+                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                خدمة العملاء والشكاوى (عند تأخر الطلب)
+            </button>
+        </div>
+
+        <!-- Driver Interface -->
+        <div id="driver-view" class="hidden flex flex-col gap-4">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-3">
+                <h3 class="font-bold text-slate-800 text-base border-b pb-2">الطلبات المتاحة للتوصيل</h3>
+                <div id="driver-orders-list" class="flex flex-col gap-3">
+                    <p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات جديدة متاحة حالياً</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Map & Tracking Modal -->
+    <div id="map-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl overflow-hidden flex flex-col shadow-xl max-h-[90vh]">
+            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm">تتبع خط سير الطلبية</h3>
+                <button onclick="closeMapModal()" class="text-slate-400 hover:text-white font-bold text-lg">&times;</button>
+            </div>
+            <div id="map" class="h-64 w-full bg-slate-200"></div>
+            <div class="p-4 flex flex-col gap-3 overflow-y-auto">
+                <div id="modal-order-details" class="text-sm space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100"></div>
+                <div id="modal-actions" class="flex flex-col gap-2"></div>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
+    <!-- Support Modal -->
+    <div id="support-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-5 flex flex-col gap-4 shadow-xl">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-base">خدمة العملاء والدعم</h3>
+                <button onclick="closeSupportModal()" class="text-slate-400 hover:text-slate-700 font-bold text-lg">&times;</button>
+            </div>
+            <p class="text-xs text-slate-600">إذا تأخر طلبك أو واجهتك أي مشكلة، يمكنك التواصل معنا مباشرة عبر الأرقام التالية:</p>
+            <div class="space-y-2">
+                <a href="tel:+249912345678" class="block bg-slate-50 hover:bg-slate-100 border border-slate-200 p-3 rounded-xl text-center font-bold text-slate-800 text-sm transition">📞 0912345678 (خدمة العملاء)</a>
+                <a href="tel:+249123456789" class="block bg-slate-50 hover:bg-slate-100 border border-slate-200 p-3 rounded-xl text-center font-bold text-slate-800 text-sm transition">📞 0123456789 (الشكاوى والمقترحات)</a>
+            </div>
+            <button onclick="closeSupportModal()" class="bg-slate-900 text-white font-semibold py-2.5 rounded-xl text-sm mt-1">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Global Application State with exactly 4 daily wird items requested
-        let appState = {
-            totalPoints: 0,
-            totalTasbihAllTime: 0,
-            tasbihCount: 0,
-            tasbihTarget: 33,
-            currentTasbihKey: 'سبحان الله',
-            wird: [
-                { id: 1, title: 'ورد سورة البقرة', desc: 'قراءة جزء من سورة البقرة المباركة (+50 نقطة)', completed: false, points: 50 },
-                { id: 2, title: 'ورد سورة يس', desc: 'قراءة سورة يس المباركة يومياً (+50 نقطة)', completed: false, points: 50 },
-                { id: 3, title: 'ورد التسبيح', desc: 'إتمام ورد التسبيح والاستغفار اليومي (+50 نقطة)', completed: false, points: 50 },
-                { id: 4, title: 'ورد الصلاة على النبي', desc: 'الصلاة والسلام على نبينا محمد ﷺ 100 مرة (+50 نقطة)', completed: false, points: 50 }
-            ],
-            settings: {
-                notifications: true,
-                vibrate: true
+        let currentUser = null;
+        let mapInstance = null;
+        let markerInstance = null;
+
+        // Simple LocalStorage sync simulation for real-time multi-device feel
+        function getOrders() {
+            try {
+                return JSON.parse(localStorage.getItem('wasilak_orders')) || [];
+            } catch {
+                return [];
             }
-        };
-
-        const adhkarData = {
-            morning: [
-                { text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 1, current: 0 },
-                { text: 'اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور.', count: 1, current: 0 },
-                { text: 'آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 },
-                { text: 'سورة الإخلاص والمعوذتين (ثلاث مرات)', count: 3, current: 0 },
-                { text: 'رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.', count: 3, current: 0 }
-            ],
-            evening: [
-                { text: 'أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', count: 1, current: 0 },
-                { text: 'اللهم بك أمسينا وبك أصبحنا، وبك نحيا وبك نموت وإليك المصير.', count: 1, current: 0 },
-                { text: 'آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 },
-                { text: 'سورة الإخلاص والمعوذتين (ثلاث مرات)', count: 3, current: 0 },
-                { text: 'اللهم ما أمسى بي من نعمة أو بأحد من خلقك فمنك وحدك لا شريك لك.', count: 1, current: 0 }
-            ],
-            sleep: [
-                { text: 'باسْمِكَ رَبِّ وضَعْتُ جَنْبي، وبِكَ أَرْفَعُهُ، إنْ أَمْسَكْتَ نَفْسي فارْحَمْها، وإنْ أَرْسَلْتَها فاحْفَظْها بما تَحْفَظُ به عِبادَكَ الصَّالِحينَ.', count: 1, current: 0 },
-                { text: 'جمع كفيه ثم نفث فيهما وقرأ: قل هو الله أحد، وقل أعوذ برب الفلق، وقل أعوذ برب الناس (ثلاث مرات).', count: 3, current: 0 },
-                { text: 'قراءة آية الكرسي: اللَّهُ لَا إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', count: 1, current: 0 }
-            ]
-        };
-
-        const duaaData = [
-            { title: 'دعاء جامع للخير', text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ' },
-            { title: 'دعاء الثبات على الدين', text: 'رَبَّنَا لَا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ' },
-            { title: 'دعاء الغفران والتوبة', text: 'رَبَّنَا اغْفِرْ لَنَا ذُنُوبَنَا وَإِسْرَافَنَا فِي أَمْرِنَا وَثَبِّتْ أَقْدَامَنَا وَانْصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ' },
-            { title: 'دعاء تيسير الأمور', text: 'رَبِّ اشْرَحْ لي صَدْرِي وَيَسِّرْ لي أَمْرِي وَاحْلُلْ عُقْدَةً مِنْ لِسَانِي يَفْقَهُوا قَوْلِي' }
-        ];
-
-        window.onload = function() {
-            loadSavedData();
-            renderWird();
-            loadAdhkarCategory('morning');
-            renderDuaa();
-            updateProgressStats();
-        };
-
-        // Navigation Controller
-        function switchTab(tabId) {
-            const tabs = ['wird', 'adhkar', 'tasbih', 'duaa'];
-            tabs.forEach(t => {
-                const content = document.getElementById(`content-${t}`);
-                const btn = document.getElementById(`tab-${t}`);
-                if (t === tabId) {
-                    if(content) content.classList.remove('hidden');
-                    if(btn) btn.className = "flex-1 py-2 px-1 rounded-lg font-semibold text-xs transition flex flex-col items-center justify-center gap-1 bg-islamic-900 text-white shadow-sm";
-                } else {
-                    if(content) content.classList.add('hidden');
-                    if(btn) btn.className = "flex-1 py-2 px-1 rounded-lg font-semibold text-xs transition flex flex-col items-center justify-center gap-1 text-slate-600 hover:bg-slate-50";
-                }
-            });
         }
 
-        function renderWird() {
-            const container = document.getElementById('wirdList');
-            if(!container) return;
-            container.innerHTML = '';
-            appState.wird.forEach(item => {
-                const card = document.createElement('div');
-                card.className = `p-3 rounded-xl border transition flex items-center justify-between gap-2 ${item.completed ? 'bg-islamic-50/60 border-islamic-200' : 'bg-white border-slate-100 shadow-sm'}`;
-                card.innerHTML = `
-                    <div class="flex items-start gap-2.5">
-                        <input type="checkbox" ${item.completed ? 'checked' : ''} onchange="toggleWird(${item.id})" class="mt-1 w-4 h-4 accent-islamic-600 rounded cursor-pointer">
-                        <div>
-                            <h4 class="font-bold text-xs text-slate-800 ${item.completed ? 'line-through text-slate-400' : ''}">${item.title}</h4>
-                            <p class="text-[10px] text-slate-500 mt-0.5">${item.desc}</p>
+        function saveOrders(orders) {
+            localStorage.setItem('wasilak_orders', JSON.stringify(orders));
+            renderInterface();
+        }
+
+        // Poll for changes to sync across tabs/phones simulating cloud sync
+        window.addEventListener('storage', () => {
+            renderInterface();
+        });
+        setInterval(() => {
+            renderInterface();
+        }, 2000);
+
+        function loginAs(role) {
+            const phone = document.getElementById('phone-input').value.trim();
+            if(phone.length < 9) {
+                alert('الرجاء إدخال رقم هاتف صحيح مكون من 9 أرقام');
+                return;
+            }
+            currentUser = { role, phone };
+            document.getElementById('auth-screen').classList.add('hidden');
+            if(role === 'client') {
+                document.getElementById('client-view').classList.remove('hidden');
+                document.getElementById('user-role-badge').innerText = `عميل: +249 ${phone}`;
+            } else {
+                document.getElementById('driver-view').classList.remove('hidden');
+                document.getElementById('user-role-badge').innerText = `كابتن: +249 ${phone}`;
+            }
+            renderInterface();
+        }
+
+        function createOrder() {
+            const pickup = document.getElementById('pickup-loc').value.trim();
+            const dropoff = document.getElementById('dropoff-loc').value.trim();
+            const desc = document.getElementById('order-desc').value.trim();
+
+            if(!pickup || !dropoff) {
+                alert('الرجاء إدخال موقع الاستلام وموقع التوصيل');
+                return;
+            }
+
+            const newOrder = {
+                id: 'ORD-' + Math.floor(1000 + Math.random() * 9000),
+                clientPhone: currentUser.phone,
+                pickup,
+                dropoff,
+                desc: desc || 'لا توجد تفاصيل إضافية',
+                price: '20,000 SDG',
+                status: 'pending', // pending, accepted, on_the_way, arrived, paid, completed
+                driver: {
+                    name: 'محمد أحمد',
+                    bikeType: 'هوجن 3 (دراجة نارية)',
+                    plateNum: 'خ-٥-١٢٣٤',
+                    phone: '0911223344'
+                }
+            };
+
+            const orders = getOrders();
+            orders.unshift(newOrder);
+            saveOrders(orders);
+
+            document.getElementById('pickup-loc').value = '';
+            document.getElementById('dropoff-loc').value = '';
+            document.getElementById('order-desc').value = '';
+            alert('تم إرسال طلبك بنجاح وجاري البحث عن كابتن متاح!');
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const orders = getOrders();
+            const order = orders.find(o => o.id === orderId);
+            if(order) {
+                order.status = newStatus;
+                saveOrders(orders);
+            }
+        }
+
+        function renderInterface() {
+            if(!currentUser) return;
+            const orders = getOrders();
+
+            if(currentUser.role === 'client') {
+                const clientList = document.getElementById('client-orders-list');
+                const myOrders = orders.filter(o => o.clientPhone === currentUser.phone);
+                
+                if(myOrders.length === 0) {
+                    clientList.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات نشطة حالياً</p>`;
+                    return;
+                }
+
+                clientList.innerHTML = myOrders.map(o => `
+                    <div class="border border-slate-200 rounded-xl p-3 flex flex-col gap-2 bg-slate-50">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                            <span>رقم الطلب: ${o.id}</span>
+                            <span class="px-2 py-0.5 rounded-full ${getStatusBadgeClass(o.status)}">${getStatusText(o.status)}</span>
+                        </div>
+                        <div class="text-xs text-slate-600 space-y-1">
+                            <p><b>من:</b> ${o.pickup}</p>
+                            <p><b>إلى:</b> ${o.dropoff}</p>
+                            <p><b>التكلفة:</b> ${o.price}</p>
+                        </div>
+                        ${o.status !== 'pending' ? `
+                            <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs space-y-1 mt-1">
+                                <p class="font-bold text-slate-800">👤 الكابتن: ${o.driver.name}</p>
+                                <p class="text-slate-600">🏍️ ${o.driver.bikeType} | اللوحة: ${o.driver.plateNum}</p>
+                                <a href="tel:${o.driver.phone}" class="inline-block bg-green-50 text-green-700 font-bold px-3 py-1 rounded-md mt-1 border border-green-200">📞 اتصال بالكابتن (${o.driver.phone})</a>
+                            </div>
+                        ` : ''}
+
+                        ${o.status === 'arrived' || o.status === 'paid' ? `
+                            <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-xl mt-2 flex flex-col gap-2">
+                                <p class="text-xs font-bold text-slate-800">طريقة الدفع (أجرة التوصيل):</p>
+                                <div class="flex gap-2">
+                                    <button onclick="payOrder('${o.id}', 'نقداً')" class="flex-1 bg-slate-900 text-white font-bold py-1.5 rounded-lg text-xs">نقداً (كاش)</button>
+                                    <button onclick="payOrder('${o.id}', 'بنكك')" class="flex-1 bg-blue-600 text-white font-bold py-1.5 rounded-lg text-xs">تطبيق بنكك</button>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <button onclick="openMapModal('${o.id}')" class="bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-xs mt-1 transition">تتبع الطلب والخريطة</button>
+                    </div>
+                `).join('');
+
+            } else if(currentUser.role === 'driver') {
+                const driverList = document.getElementById('driver-orders-list');
+                const availableOrders = orders.filter(o => o.status === 'pending' || o.driver.phone === currentUser.phone);
+
+                if(availableOrders.length === 0) {
+                    driverList.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">لا توجد طلبات جديدة متاحة حالياً</p>`;
+                    return;
+                }
+
+                driverList.innerHTML = availableOrders.map(o => `
+                    <div class="border border-slate-200 rounded-xl p-3 flex flex-col gap-2 bg-slate-50">
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                            <span>طلب: ${o.id}</span>
+                            <span class="px-2 py-0.5 rounded-full ${getStatusBadgeClass(o.status)}">${getStatusText(o.status)}</span>
+                        </div>
+                        <div class="text-xs text-slate-600 space-y-1">
+                            <p><b>الاستلام:</b> ${o.pickup}</p>
+                            <p><b>التسليم:</b> ${o.dropoff}</p>
+                            <p><b>التفاصيل:</b> ${o.desc}</p>
+                            <p><b>الأجرة:</b> ${o.price}</p>
+                        </div>
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-xs mt-1">
+                            <p class="font-bold text-slate-800">📱 هاتف العميل: +249 ${o.clientPhone}</p>
+                            <a href="tel:+249${o.clientPhone}" class="inline-block bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-md mt-1 border border-blue-200">اتصال بالعميل</a>
+                        </div>
+                        <div class="flex flex-col gap-1.5 mt-2">
+                            ${o.status === 'pending' ? `
+                                <button onclick="acceptAndStart('${o.id}')" class="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-bold py-2 rounded-lg text-xs">1. استلام الطلبية (قبول)</button>
+                            ` : ''}
+                            ${o.status === 'accepted' ? `
+                                <button onclick="updateOrderStatus('${o.id}', 'on_the_way')" class="bg-blue-600 text-white font-bold py-2 rounded-lg text-xs">2. أنا في الطريق</button>
+                            ` : ''}
+                            ${o.status === 'on_the_way' ? `
+                                <button onclick="updateOrderStatus('${o.id}', 'arrived')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">3. أنا وصلت وجهة التسليم</button>
+                            ` : ''}
+                            ${o.status === 'arrived' || o.status === 'paid' ? `
+                                <p class="text-xs text-center font-bold text-emerald-600 py-1">في انتظار تأكيد الدفع من العميل وإنهاء الطلب</p>
+                            ` : ''}
+                            ${o.status === 'completed' ? `
+                                <p class="text-xs text-center font-bold text-slate-500 py-1">تم إكمال الطلب بنجاح</p>
+                            ` : ''}
                         </div>
                     </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${item.completed ? 'bg-islamic-100 text-islamic-800' : 'bg-amber-50 text-amber-800'}">
-                        +50 نقطة
-                    </span>
-                `;
-                container.appendChild(card);
-            });
-            updateProgressStats();
+                `).join('');
+            }
         }
 
-        function toggleWird(id) {
-            const item = appState.wird.find(w => w.id === id);
-            if (item) {
-                item.completed = !item.completed;
-                if (item.completed) {
-                    appState.totalPoints += 50;
-                    showToast(`كسبت 50 نقطة لإتمام ${item.title}`);
+        function acceptAndStart(orderId) {
+            const orders = getOrders();
+            const order = orders.find(o => o.id === orderId);
+            if(order) {
+                order.status = 'accepted';
+                order.driver.phone = currentUser.phone;
+                saveOrders(orders);
+                alert('تم قبول الطلبية بنجاح! تواصل مع العميل لبدء الانطلاق.');
+            }
+        }
+
+        function payOrder(orderId, method) {
+            updateOrderStatus(orderId, 'completed');
+            alert(`تم تأكيد الدفع عبر (${method}) بنجاح! شكراً لاستخدامك واصلك سريع.`);
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'pending': return 'قيد الانتظار';
+                case 'accepted': return 'تم قبول الطلب';
+                case 'on_the_way': return 'الكابتن في الطريق';
+                case 'arrived': return 'وصل الكابتن';
+                case 'paid': return 'تم الدفع';
+                case 'completed': return 'مكتملة';
+                default: return 'نشط';
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'pending': return 'bg-amber-100 text-amber-800';
+                case 'accepted': return 'bg-blue-100 text-blue-800';
+                case 'on_the_way': return 'bg-indigo-100 text-indigo-800';
+                case 'arrived': return 'bg-emerald-100 text-emerald-800';
+                case 'completed': return 'bg-slate-200 text-slate-700';
+                default: return 'bg-slate-100 text-slate-800';
+            }
+        }
+
+        function openMapModal(orderId) {
+            document.getElementById('map-modal').classList.remove('hidden');
+            const orders = getOrders();
+            const order = orders.find(o => o.id === orderId);
+            
+            if(order) {
+                document.getElementById('modal-order-details').innerHTML = `
+                    <p><b>رقم الطلب:</b> ${order.id}</p>
+                    <p><b>من:</b> ${order.pickup}</p>
+                    <p><b>إلى:</b> ${order.dropoff}</p>
+                    <p><b>الحالة الحالية:</b> <span class="text-indigo-600 font-bold">${getStatusText(order.status)}</span></p>
+                `;
+            }
+
+            setTimeout(() => {
+                if(!mapInstance) {
+                    mapInstance = L.map('map').setView([15.5007, 32.5599], 13); // Khartoum coordinates
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(mapInstance);
+                    markerInstance = L.marker([15.5007, 32.5599]).addTo(mapInstance).bindPopup('موقع التوصيل الحالي').openPopup();
                 } else {
-                    appState.totalPoints = Math.max(0, appState.totalPoints - 50);
-                    showToast('تم إلغاء الإنجاز وخصم النقاط');
+                    mapInstance.invalidateSize();
                 }
-                saveData();
-                renderWird();
-            }
+            }, 300);
         }
 
-        function resetWird() {
-            let pointsToSubtract = 0;
-            appState.wird.forEach(w => {
-                if (w.completed) pointsToSubtract += 50;
-                w.completed = false;
-            });
-            appState.totalPoints = Math.max(0, appState.totalPoints - pointsToSubtract);
-            saveData();
-            renderWird();
-            showToast('تم إعادة تعيين الإنجازات');
+        function closeMapModal() {
+            document.getElementById('map-modal').classList.add('hidden');
         }
 
-        function loadAdhkarCategory(cat) {
-            ['morning', 'evening', 'sleep'].forEach(c => {
-                const btn = document.getElementById(`btn-${c}`);
-                if (btn) {
-                    if (c === cat) {
-                        btn.classList.add('ring-2', 'ring-offset-1', 'ring-islamic-500');
-                    } else {
-                        btn.classList.remove('ring-2', 'ring-offset-1', 'ring-islamic-500');
-                    }
-                }
-            });
-
-            const container = document.getElementById('adhkarContainer');
-            if(!container) return;
-            container.innerHTML = '';
-            
-            adhkarData[cat].forEach((dhikr, index) => {
-                const card = document.createElement('div');
-                card.className = `p-3 rounded-xl bg-white border border-slate-100 shadow-sm flex flex-col gap-2 transition ${dhikr.current >= dhikr.count ? 'opacity-60 bg-slate-50' : ''}`;
-                card.innerHTML = `
-                    <p class="text-slate-800 quran-font text-xs leading-relaxed">${dhikr.text}</p>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-50 text-xs">
-                        <span class="text-[10px] text-slate-500">المطلوب: ${dhikr.count} (+2 نقطة)</span>
-                        <button onclick="decrementDhikr('${cat}', ${index})" class="px-3 py-1 rounded-lg bg-islamic-600 hover:bg-islamic-700 text-white font-bold text-xs transition active:scale-95">
-                            متبقي: ${dhikr.count - dhikr.current}
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
+        function openSupportModal() {
+            document.getElementById('support-modal').classList.remove('hidden');
         }
 
-        function decrementDhikr(cat, index) {
-            const dhikr = adhkarData[cat][index];
-            if (dhikr && dhikr.current < dhikr.count) {
-                dhikr.current++;
-                appState.totalPoints += 2;
-                appState.totalTasbihAllTime++;
-                if (appState.settings.vibrate && navigator.vibrate) {
-                    navigator.vibrate(25);
-                }
-                saveData();
-                loadAdhkarCategory(cat);
-                updateProgressStats();
-            }
-        }
-
-        const tasbihTargets = {
-            'سبحان الله': 33,
-            'الحمد لله': 33,
-            'الله أكبر': 34,
-            'لا إله إلا الله وحدها لا شريك له': 100,
-            'استغفر الله العظيم': 100,
-            'صلى الله على محمد': 100
-        };
-
-        function changeTasbihTarget() {
-            const select = document.getElementById('tasbihType');
-            if(select) {
-                appState.currentTasbihKey = select.value;
-                appState.tasbihTarget = tasbihTargets[appState.currentTasbihKey] || 33;
-                appState.tasbihCount = 0;
-                updateTasbihDisplay();
-            }
-        }
-
-        function incrementCounter() {
-            appState.tasbihCount++;
-            appState.totalTasbihAllTime++;
-            appState.totalPoints += 1;
-            if (appState.settings.vibrate && navigator.vibrate) {
-                navigator.vibrate(30);
-            }
-            saveData();
-            updateTasbihDisplay();
-            updateProgressStats();
-        }
-
-        function resetCounter() {
-            appState.tasbihCount = 0;
-            updateTasbihDisplay();
-            showToast('تم تصفير العداد');
-        }
-
-        function updateTasbihDisplay() {
-            const valEl = document.getElementById('counterValue');
-            const targetEl = document.getElementById('counterTargetLabel');
-            if(valEl) valEl.innerText = appState.tasbihCount;
-            if(targetEl) targetEl.innerText = `من ${appState.tasbihTarget}`;
-        }
-
-        function vibrateDevice() {
-            if (navigator.vibrate) {
-                navigator.vibrate([40, 40, 40]);
-                showToast('تم اختبار الاهتزاز بنجاح');
-            } else {
-                showToast('الاهتزاز غير مدعوم');
-            }
-        }
-
-        function renderDuaa() {
-            const container = document.getElementById('duaaList');
-            if(!container) return;
-            container.innerHTML = '';
-            duaaData.forEach((duaa) => {
-                const card = document.createElement('div');
-                card.className = 'p-3.5 rounded-xl bg-white border border-slate-100 shadow-sm flex flex-col gap-2';
-                card.innerHTML = `
-                    <div>
-                        <h4 class="font-bold text-islamic-800 text-xs mb-1 flex items-center gap-1">
-                            <i class="fa-solid fa-star text-islamic-gold text-[10px]"></i> ${duaa.title}
-                        </h4>
-                        <p class="text-slate-700 quran-font text-xs leading-relaxed">${duaa.text}</p>
-                    </div>
-                    <div class="flex justify-end pt-1">
-                        <button onclick="copyDuaa('${duaa.text}')" class="text-[10px] text-islamic-600 hover:text-islamic-800 font-semibold flex items-center gap-1 bg-islamic-50 px-2.5 py-1 rounded-lg transition">
-                            <i class="fa-regular fa-copy"></i> نسخ
-                        </button>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function copyDuaa(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showToast('تم نسخ الدعاء بنجاح');
-            } catch (err) {
-                showToast('تعذر النسخ');
-            }
-            document.body.removeChild(textArea);
-        }
-
-        function updateProgressStats() {
-            const completedCount = appState.wird.filter(w => w.completed).length;
-            const totalCount = appState.wird.length;
-
-            const headerPoints = document.getElementById('headerPoints');
-            const dailyTotalPoints = document.getElementById('dailyTotalPoints');
-            const statsTotalPoints = document.getElementById('statsTotalPoints');
-            const pctText = document.getElementById('progressCircleText');
-            const swDone = document.getElementById('statsWirdDone');
-            const totTasb = document.getElementById('statsTotalTasbih');
-            const userLevelBadge = document.getElementById('userLevelBadge');
-            const statsUserLevelDesc = document.getElementById('statsUserLevelDesc');
-
-            if(headerPoints) headerPoints.innerText = appState.totalPoints;
-            if(dailyTotalPoints) dailyTotalPoints.innerText = appState.totalPoints;
-            if(statsTotalPoints) statsTotalPoints.innerText = appState.totalPoints;
-            if(pctText) pctText.innerText = `${completedCount}/${totalCount}`;
-            if(swDone) swDone.innerText = `${completedCount}/${totalCount}`;
-            if(totTasb) totTasb.innerText = appState.totalTasbihAllTime;
-
-            let levelTitle = "مبتدئ";
-            if (appState.totalPoints >= 300) levelTitle = "متقدم";
-            else if (appState.totalPoints >= 150) levelTitle = "نشط";
-            
-            if(userLevelBadge) userLevelBadge.innerText = levelTitle;
-            if(statsUserLevelDesc) statsUserLevelDesc.innerText = `مستوى ${levelTitle}`;
-        }
-
-        function openSettings() {
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-        function openStats() {
-            updateProgressStats();
-            document.getElementById('statsModal').classList.remove('hidden');
-        }
-        function closeStats() {
-            document.getElementById('statsModal').classList.add('hidden');
-        }
-
-        function saveData() {
-            try {
-                localStorage.setItem('awrad_app_state', JSON.stringify(appState));
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function loadSavedData() {
-            try {
-                const saved = localStorage.getItem('awrad_app_state');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    appState = { ...appState, ...parsed };
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        function saveSettings() {
-            appState.settings.notifications = document.getElementById('settingNotifications').checked;
-            appState.settings.vibrate = document.getElementById('settingVibrate').checked;
-            saveData();
-            showToast('تم حفظ الإعدادات');
-        }
-
-        function exportUserData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "awrad_backup.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-            showToast('تم تصدير البيانات بنجاح');
-        }
-
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const msgSpan = document.getElementById('toastMessage');
-            if(toast && msgSpan) {
-                msgSpan.innerText = message;
-                toast.classList.remove('opacity-0', 'pointer-events-none');
-                setTimeout(() => {
-                    toast.classList.add('opacity-0', 'pointer-events-none');
-                }, 2500);
-            }
+        function closeSupportModal() {
+            document.getElementById('support-modal').classList.add('hidden');
         }
     </script>
 </body>
