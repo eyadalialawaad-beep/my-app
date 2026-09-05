@@ -114,6 +114,99 @@
         </div>
     </header>
 
+    <!-- Gorgeous Advertising Banner Carousel Showcase (Top Bar) -->
+    <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white border-b border-brand-500/20 overflow-hidden relative shadow-2xl py-4 sm:py-6">
+        <div class="absolute inset-0 bg-[radial-gradient(#eab308_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 bg-brand-500/20 border border-brand-500/50 rounded-xl flex items-center justify-center text-brand-400 shadow-inner">
+                        <i class="fa-solid fa-bolt-lightning text-sm animate-bounce"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-brand-400 font-black tracking-wider uppercase block">عروض وعروض حصرية</span>
+                        <h2 class="text-xs sm:text-sm font-black text-slate-200">شارع التحرير • الرياض • أم درمان وبحري</h2>
+                    </div>
+                </div>
+                <!-- Carousel dots indicators -->
+                <div class="flex justify-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800 shadow-inner" id="carousel-dots">
+                    <button onclick="switchPromoSlide(0)" class="w-2.5 h-2.5 rounded-full bg-brand-500 transition-all shadow" data-dot="0" title="العرض الأول"></button>
+                    <button onclick="switchPromoSlide(1)" class="w-2.5 h-2.5 rounded-full bg-slate-600 transition-all shadow" data-dot="1" title="عرض السرعة"></button>
+                    <button onclick="switchPromoSlide(2)" class="w-2.5 h-2.5 rounded-full bg-slate-600 transition-all shadow" data-dot="2" title="تطبيق التجار"></button>
+                </div>
+            </div>
+
+            <!-- Carousel Slides Container -->
+            <div id="promo-carousel-container" class="relative min-h-[72px] sm:min-h-[80px] flex items-center">
+                
+                <!-- Slide 1: First Order Discount & Promo Code -->
+                <div class="promo-slide absolute inset-0 flex items-center justify-between bg-gradient-to-r from-brand-500/10 via-slate-900 to-slate-900 border border-brand-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-700 opacity-100 translate-y-0 shadow-lg" data-index="0">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-brand-500 text-slate-950 font-black flex flex-col items-center justify-center text-xs shadow-md flex-shrink-0">
+                            <span class="text-base font-black">50%</span>
+                            <span class="text-[9px]">خصم</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-brand-500 text-slate-950 px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black">العرض الذهبي 🔥</span>
+                                <span class="text-slate-400 text-xs hidden sm:inline">أول توصيل عليك مجاناً تقريباً</span>
+                            </div>
+                            <p class="text-xs sm:text-sm font-bold text-slate-100">
+                                خصم <span class="text-brand-400 font-black">50%</span> على تكلفة التوصيل الأولى! استخدم كود الخصم: <code class="bg-slate-950 border border-brand-500/50 px-2.5 py-1 rounded-lg text-brand-400 font-mono font-bold tracking-wider ml-1">FIRST50</code>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="hidden lg:flex items-center gap-2 text-brand-400 font-bold text-xs bg-brand-500/10 px-3 py-2 rounded-xl border border-brand-500/20">
+                        <i class="fa-solid fa-gift"></i> سارع بالطلب الآن
+                    </div>
+                </div>
+
+                <!-- Slide 2: Lightning Fast Delivery across Sudan -->
+                <div class="promo-slide absolute inset-0 flex items-center justify-between bg-gradient-to-r from-emerald-500/10 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-700 opacity-0 translate-y-4 pointer-events-none shadow-lg" data-index="1">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white font-black flex items-center justify-center text-xl shadow-md flex-shrink-0">
+                            <i class="fa-solid fa-motorcycle"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-emerald-500 text-white px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black">سرعة وأمان ⚡</span>
+                                <span class="text-slate-400 text-xs hidden sm:inline">تغطية شاملة لكل الأحياء</span>
+                            </div>
+                            <p class="text-xs sm:text-sm font-bold text-slate-100">
+                                أسطول دراجات نارية جاهز على مدار الساعة لتوصيل الأطعمة، الأدوية، والمستندات الرسمية بكل أمان وسرعة فائقة.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="hidden lg:flex items-center gap-2 text-emerald-400 font-bold text-xs bg-emerald-500/10 px-3 py-2 rounded-xl border border-emerald-500/20">
+                        <i class="fa-solid fa-shield-halved"></i> توصيل مضمون 100%
+                    </div>
+                </div>
+
+                <!-- Slide 3: Merchant & 24/7 Support Partnership -->
+                <div class="promo-slide absolute inset-0 flex items-center justify-between bg-gradient-to-r from-blue-600/10 via-slate-900 to-slate-900 border border-blue-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-700 opacity-0 translate-y-4 pointer-events-none shadow-lg" data-index="2">
+                    <div class="flex items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-xl shadow-md flex-shrink-0">
+                            <i class="fa-solid fa-store"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-blue-600 text-white px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black">شراكات المتاجر 🤝</span>
+                                <span class="text-slate-400 text-xs hidden sm:inline">ارفع مبيعات متجرك معنا</span>
+                            </div>
+                            <p class="text-xs sm:text-sm font-bold text-slate-100">
+                                هل تمتلك مطعماً أو صيدلية أو متجراً؟ انضم اليوم لشبكة تجار "واصلك سريع" وضاعف مبيعاتك مع توصيل فوري لزبائنك.
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="openSupportModal()" class="hidden lg:flex items-center gap-2 text-blue-400 font-bold text-xs bg-blue-500/10 hover:bg-blue-500/25 px-3 py-2 rounded-xl border border-blue-500/30 transition">
+                        <i class="fa-solid fa-headset"></i> تواصل مع خدمة التجار
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-grow w-full">
         
         <!-- Role View 1: Client / Merchant -->
@@ -875,9 +968,45 @@
             }, 3500);
         }
 
-        // Initialize Cloud Sync on load
+        // Promotional Banner Carousel Logic
+        let currentPromoIndex = 0;
+        const totalPromoSlides = 3;
+
+        window.switchPromoSlide = function(index) {
+            currentPromoIndex = index;
+            const slides = document.querySelectorAll('.promo-slide');
+            const dots = document.querySelectorAll('[data-dot]');
+
+            slides.forEach((slide, idx) => {
+                if (idx === currentPromoIndex) {
+                    slide.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                    slide.classList.add('opacity-100', 'translate-y-0');
+                } else {
+                    slide.classList.remove('opacity-100', 'translate-y-0');
+                    slide.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                }
+            });
+
+            dots.forEach((dot, idx) => {
+                if (idx === currentPromoIndex) {
+                    dot.className = 'w-5 h-2.5 rounded-full bg-brand-500 transition-all shadow';
+                } else {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-600 transition-all shadow';
+                }
+            });
+        };
+
+        function startPromoCarousel() {
+            setInterval(() => {
+                currentPromoIndex = (currentPromoIndex + 1) % totalPromoSlides;
+                switchPromoSlide(currentPromoIndex);
+            }, 5000);
+        }
+
+        // Initialize Cloud Sync and Carousel on load
         window.onload = function() {
             initFirebase();
+            startPromoCarousel();
         };
     </script>
 </body>
