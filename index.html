@@ -2,26 +2,28 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>واصلك سريع</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة مركز الأحباب الطبي التخصصي - الاستقبال والمعمل والحسابات</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for medical & navigation icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Google Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        cairo: ['Cairo', 'sans-serif'],
+                        sans: ['Cairo', 'sans-serif'],
                     },
                     colors: {
-                        brand: {
-                            50: '#fefce8',
-                            100: '#fef08a',
-                            500: '#facc15',
-                            600: '#eab308',
-                            700: '#ca8a04',
-                        }
+                        primary: '#0284c7', // Sky 600
+                        primaryDark: '#0369a1',
+                        secondary: '#0d9488', // Teal 600
+                        accent: '#f59e0b', // Amber 500
+                        darkBg: '#0f172a',
                     }
                 }
             }
@@ -29,985 +31,1513 @@
     </script>
     <style>
         body {
+            background-color: #f1f5f9;
             font-family: 'Cairo', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            user-select: none;
         }
+        .fade-in {
+            animation: fadeIn 0.25s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .sidebar-item {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: #e0f2fe;
+            color: #0284c7;
+            font-weight: 700;
+            border-right: 4px solid #0284c7;
+        }
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #f1f5f9;
         }
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 4px;
         }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Print formatting for Receipts and Lab Reports */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable-area, .printable-area * {
+                visibility: visible;
+            }
+            .printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 15px;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="text-slate-800 antialiased h-screen flex overflow-hidden">
 
-    <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl p-6 sm:p-8 space-y-6">
-            <div class="text-center space-y-3">
-                <div class="w-16 h-16 mx-auto flex items-center justify-center rounded-2xl border-2 border-brand-500 bg-slate-900 shadow-md">
-                    <i class="fa-solid fa-motorcycle text-brand-500 text-2xl"></i>
+    <!-- Login Modal -->
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-sky-100 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                    <i class="fas fa-hospital-user text-4xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">مركز الأحباب الطبي التخصصي</h2>
+                <p class="text-xs font-bold text-sky-700 mt-1">Al-Ahbab Private Medical Center</p>
+                <p class="text-sm text-slate-500 mt-1">نظام إدارة الاستقبال والمعمل والحسابات</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">اختر القسم / الحساب</label>
+                    <select id="roleSelect" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-slate-800 bg-slate-50">
+                        <option value="admin">مدير النظام / المحاسب الشامل (Admin/Accountant)</option>
+                        <option value="reception">موظف الاستقبال (Receptionist)</option>
+                        <option value="lab">فني المعمل (Lab Technician)</option>
+                    </select>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">واصلك سريع</h2>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">اسم المستخدم</label>
+                    <input type="text" value="admin" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" required>
                 </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">كلمة المرور</label>
+                    <input type="password" value="123456" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" required>
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-primaryDark text-white font-bold py-3.5 rounded-xl transition duration-200 shadow-lg shadow-sky-200">
+                    تسجيل الدخول <i class="fas fa-arrow-left mr-2"></i>
+                </button>
+            </form>
+            <p class="text-xs text-center text-slate-400 mt-6">للتجربة اضغط تسجيل الدخول مباشرة</p>
+        </div>
+    </div>
+
+    <!-- Main Application Shell -->
+    <div id="mainApp" class="flex h-full w-full hidden">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white shadow-xl h-full flex flex-col z-20 border-l border-slate-200">
+            <!-- Header Brand -->
+            <div class="p-6 text-center border-b border-slate-100 bg-sky-50/50">
+                <div class="flex items-center justify-center gap-3 mb-2">
+                    <i class="fas fa-microscope text-2xl text-primary"></i>
+                    <div>
+                        <h1 class="text-lg font-bold text-slate-800 leading-tight">مركز الأحباب الطبي التخصصي</h1>
+                        <p class="text-[10px] text-sky-700 font-bold">Al-Ahbab Private Medical Center</p>
+                    </div>
+                </div>
+                <span id="currentUserBadge" class="inline-block px-3 py-1 bg-sky-100 text-sky-800 text-xs rounded-full font-bold"></span>
             </div>
 
-            <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">رقم الهاتف النقال (السودان)</label>
-                    <div class="flex rounded-xl overflow-hidden border border-slate-200 bg-slate-50 focus-within:border-brand-500 transition">
-                        <span class="bg-slate-200 text-slate-700 font-bold px-3 py-2.5 text-xs flex items-center gap-1.5 select-none border-l border-slate-300">
-                            🇸🇩 +249
-                        </span>
-                        <input type="tel" id="auth-phone" required placeholder="912345678" maxlength="10" class="w-full bg-transparent px-3 py-2.5 text-sm focus:outline-none font-bold text-slate-900 tracking-wider">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-2">اختر طبيعة حسابك في التطبيق</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="cursor-pointer border-2 border-brand-500 bg-brand-50 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center transition hover:shadow-sm" id="role-client-label" onclick="setAuthRole('client')">
-                            <input type="radio" name="auth_role" value="client" checked class="hidden">
-                            <i class="fa-solid fa-user text-lg text-brand-600 mb-1"></i>
-                            <span class="font-bold text-xs text-slate-900">عميل / تاجر</span>
-                            <span class="text-[10px] text-slate-500 mt-0.5">طلب وتوصيل أغراض</span>
-                        </label>
-                        <label class="cursor-pointer border-2 border-slate-200 bg-slate-50 rounded-2xl p-3.5 flex flex-col items-center justify-center text-center transition hover:shadow-sm" id="role-driver-label" onclick="setAuthRole('driver')">
-                            <input type="radio" name="auth_role" value="driver" class="hidden">
-                            <i class="fa-solid fa-motorcycle text-lg text-slate-600 mb-1"></i>
-                            <span class="font-bold text-xs text-slate-700">سائق (كابتن)</span>
-                            <span class="text-[10px] text-slate-500 mt-0.5">استلام وتوصيل الطلبات</span>
-                        </label>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full max-w-[120px] mx-auto bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold py-2 px-3 rounded-xl shadow-md shadow-brand-500/25 transition text-xs flex items-center justify-center gap-1.5 block">
-                    <span>دخول</span> <i class="fa-solid fa-arrow-left text-[10px]"></i>
+            <!-- Navigation Links -->
+            <nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+                <button onclick="navigateTo('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 sidebar-item active" data-target="dashboard">
+                    <i class="fas fa-chart-pie text-lg w-6"></i>
+                    <span class="font-medium">لوحة القيادة</span>
                 </button>
+
+                <button onclick="navigateTo('reception')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 sidebar-item role-restricted" data-allowed="admin,reception" data-target="reception">
+                    <i class="fas fa-receipt text-lg w-6"></i>
+                    <span class="font-medium">الاستقبال والتسجيل</span>
+                </button>
+
+                <button onclick="navigateTo('lab')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 sidebar-item role-restricted" data-allowed="admin,lab" data-target="lab">
+                    <i class="fas fa-vials text-lg w-6"></i>
+                    <span class="font-medium">المعمل والفحوصات</span>
+                </button>
+
+                <button onclick="navigateTo('accounts')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 sidebar-item role-restricted" data-allowed="admin" data-target="accounts">
+                    <i class="fas fa-calculator text-lg w-6"></i>
+                    <span class="font-medium">الحسابات والمالية</span>
+                </button>
+            </nav>
+
+            <!-- Bottom User Controls -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50">
+                <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition font-medium text-sm">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content View Area -->
+        <main class="flex-1 h-full overflow-y-auto bg-slate-100/70 p-6 lg:p-8 relative">
+            
+            <!-- Toast Notification Container -->
+            <div id="toastContainer" class="fixed top-5 left-5 z-50 flex flex-col gap-2"></div>
+
+            <!-- SECTION 1: DASHBOARD -->
+            <section id="view-dashboard" class="view-section block fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">نظرة عامة على المركز</h2>
+                        <p class="text-sm text-slate-500 mt-1">متابعة حركات الاستقبال، فحوصات المعمل والمالية اليومية</p>
+                    </div>
+                    <div class="bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-200 text-sm font-semibold text-slate-600 flex items-center gap-2">
+                        <i class="far fa-calendar-alt text-primary"></i>
+                        <span id="currentDateDisplay">--/--/----</span>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">تذاكر الاستقبال</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1" id="dash_totalTickets">0</p>
+                            <span class="text-xs text-emerald-600 font-medium">مرضى اليوم</span>
+                        </div>
+                        <div class="w-12 h-12 bg-sky-100 text-primary rounded-xl flex items-center justify-center text-xl">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">فحوصات المعمل</p>
+                            <p class="text-2xl font-bold text-slate-800 mt-1" id="dash_totalLabTests">0</p>
+                            <span class="text-xs text-amber-600 font-medium" id="dash_pendingLabCount">0 قيد الانتظار</span>
+                        </div>
+                        <div class="w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fas fa-vial"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">إيرادات اليوم</p>
+                            <p class="text-2xl font-bold text-emerald-600 mt-1" id="dash_totalRevenue">0 <span class="text-xs font-normal">ج.س</span></p>
+                            <span class="text-xs text-slate-500" id="dash_payMethodBreakdown">0 كاش | 0 بنكك</span>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">المصروفات اليومية</p>
+                            <p class="text-2xl font-bold text-red-500 mt-1" id="dash_totalExpenses">0 <span class="text-xs font-normal">ج.س</span></p>
+                            <span class="text-xs text-slate-500">مصروفات تشغيلية</span>
+                        </div>
+                        <div class="w-12 h-12 bg-red-100 text-red-500 rounded-xl flex items-center justify-center text-xl">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shortcuts and Live Stream -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 lg:col-span-1">
+                        <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+                            <i class="fas fa-bolt text-amber-500"></i> اختصارات سريعة
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="navigateTo('reception')" class="w-full p-4 rounded-xl border border-sky-100 bg-sky-50/50 hover:bg-sky-100 transition flex items-center gap-4 text-sky-800">
+                                <div class="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center text-lg">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold">حجز وتذكرة جديدة</p>
+                                    <p class="text-xs text-sky-600">تسجيل مريض واختيار الفحوصات</p>
+                                </div>
+                            </button>
+
+                            <button onclick="navigateTo('lab')" class="w-full p-4 rounded-xl border border-teal-100 bg-teal-50/50 hover:bg-teal-100 transition flex items-center gap-4 text-teal-800">
+                                <div class="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center text-lg">
+                                    <i class="fas fa-file-signature"></i>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold">إدخال نتائج معملية</p>
+                                    <p class="text-xs text-teal-600">تحديث نتائج الفحوصات الجارية</p>
+                                </div>
+                            </button>
+
+                            <button onclick="navigateTo('accounts')" class="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition flex items-center gap-4 text-slate-700">
+                                <div class="w-10 h-10 bg-slate-700 text-white rounded-lg flex items-center justify-center text-lg">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold">التقرير المالي والخزينة</p>
+                                    <p class="text-xs text-slate-500">التقفيل اليومي والمصروفات</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Transactions & Patients -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 lg:col-span-2">
+                        <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center justify-between">
+                            <span><i class="fas fa-history text-primary ml-2"></i>أحدث الحركات والتذاكر</span>
+                            <span class="text-xs font-normal text-slate-400">تحدث تلقائياً</span>
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead>
+                                    <tr class="border-b border-slate-100 text-slate-400 font-semibold">
+                                        <th class="pb-3">رقم التذكرة</th>
+                                        <th class="pb-3">اسم المريض</th>
+                                        <th class="pb-3">الفحوصات</th>
+                                        <th class="pb-3">المبلغ</th>
+                                        <th class="pb-3">حالة المعمل</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash_recentTable" class="divide-y divide-slate-100">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: RECEPTION (الاستقبال) -->
+            <section id="view-reception" class="view-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">قسم الاستقبال والتسجيل</h2>
+                        <p class="text-sm text-slate-500 mt-1">تسجيل المريض وإصدار إيصال الفحوصات وتحويله للمعمل</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Registration & Test Selection Form (8 cols) -->
+                    <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+                        <form id="ticketForm" onsubmit="handleCreateTicket(event)">
+                            <!-- Patient Personal Info -->
+                            <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2 border-b pb-2">
+                                <i class="fas fa-user-plus text-primary"></i> 1. بيانات المريض
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">اسم المريض الرباعي *</label>
+                                    <input type="text" id="rec_patientName" required placeholder="مثال: محمد أحمد علي عبد الله" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">العمر (بالسنوات) *</label>
+                                    <input type="number" id="rec_patientAge" min="0" max="120" required placeholder="مثال: 30" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">الجنس *</label>
+                                    <select id="rec_patientGender" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm bg-white">
+                                        <option value="ذكر">ذكر</option>
+                                        <option value="أنثى">أنثى</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">رقم الهاتف</label>
+                                    <input type="tel" id="rec_patientPhone" placeholder="09xxxxxxx" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Test Selection Matrix -->
+                            <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center justify-between border-b pb-2">
+                                <span class="flex items-center gap-2"><i class="fas fa-flask text-teal-600"></i> 2. اختيار الفحوصات المطلوبة</span>
+                                <span class="text-xs text-slate-400 font-normal">حدد الفحوصات المراد إجراؤها</span>
+                            </h3>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6" id="testSelectionContainer">
+                                <!-- Dynamically populated by JS from standard test menu -->
+                            </div>
+
+                            <!-- Payment & Billing -->
+                            <h3 class="font-bold text-slate-800 text-base mb-4 flex items-center gap-2 border-b pb-2">
+                                <i class="fas fa-credit-card text-emerald-600"></i> 3. طريقة الدفع وتأكيد الإيصال
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">طريقة وسيلة الدفع *</label>
+                                    <select id="rec_paymentMethod" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-sm bg-white font-semibold text-slate-700">
+                                        <option value="cash">نقداً (كاش)</option>
+                                        <option value="bankak">تطبيق بنكك / تحويل إلكتروني</option>
+                                    </select>
+                                </div>
+                                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex justify-between items-center">
+                                    <span class="text-sm font-bold text-slate-700">المبلغ الإجمالي المطلوب:</span>
+                                    <span id="rec_calculatedTotal" class="text-2xl font-extrabold text-primary">0 <span class="text-xs font-normal text-slate-500">ج.س</span></span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-emerald-200 flex items-center justify-center gap-2 text-base">
+                                <i class="fas fa-print"></i> حفظ وإصدار التذكرة وإرسال للمعمل
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Today's Reception Queue (4 cols) -->
+                    <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col h-[680px]">
+                        <h3 class="font-bold text-slate-800 text-base mb-3 flex items-center justify-between">
+                            <span><i class="fas fa-list-ol text-primary ml-2"></i>تذاكر اليوم بالاستقبال</span>
+                            <span class="text-xs bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold" id="rec_queueCount">0</span>
+                        </h3>
+                        <div class="mb-3 relative">
+                            <i class="fas fa-search absolute right-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="rec_searchBox" oninput="renderReceptionQueue()" placeholder="بحث باسم المريض أو رقم التذكرة..." class="w-full pr-8 pl-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:border-primary">
+                        </div>
+                        <div class="flex-1 overflow-y-auto space-y-2.5 pl-1" id="rec_queueContainer">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: LAB (المعمل) -->
+            <section id="view-lab" class="view-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">قسم المعمل والفحوصات الطبية</h2>
+                        <p class="text-sm text-slate-500 mt-1">استلام عينات المرضى وإدخال نتائج الفحوصات وطباعة التقارير</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Waiting Patients for Lab (4 cols) -->
+                    <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex flex-col h-[700px]">
+                        <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-3">
+                            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                <i class="fas fa-vial text-teal-600"></i> قائمة الانتظار للعينات
+                            </h3>
+                        </div>
+                        <div class="flex-1 overflow-y-auto space-y-2.5" id="lab_queueContainer">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Test Result Entry & Report Workspace (8 cols) -->
+                    <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 flex flex-col h-[700px]">
+                        <!-- Empty Placeholder when no patient selected -->
+                        <div id="lab_emptyState" class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-3xl mb-4 text-slate-300">
+                                <i class="fas fa-microscope"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-slate-600">لم يتم اختيار مريض</h4>
+                            <p class="text-xs text-slate-400 max-w-sm mt-1">اختر مريضاً من قائمة انتظار المعمل على اليمين للبدء بتعبئة نتائج الفحوصات الطبية وطباعة التقرير النهائي.</p>
+                        </div>
+
+                        <!-- Active Lab Form Work Area -->
+                        <div id="lab_activeWorkArea" class="hidden flex-col h-full overflow-y-auto">
+                            <!-- Selected Patient Header Bar -->
+                            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex justify-between items-center mb-5">
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="text-lg font-bold text-slate-800" id="lab_selectedName">---</h3>
+                                        <span class="px-2.5 py-0.5 bg-primary/10 text-primary font-bold text-xs rounded-full" id="lab_selectedTicketNo">#---</span>
+                                        <span class="px-2.5 py-0.5 bg-teal-100 text-teal-800 font-bold font-mono text-xs rounded-full" id="lab_selectedSampleId">Sample ID: ---</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-4 text-xs text-slate-500 mt-2 items-center">
+                                        <span><i class="fas fa-venus-mars ml-1"></i>العمر/الجنس: <strong id="lab_selectedAgeGender">--</strong></span>
+                                        <span><i class="fas fa-phone ml-1"></i>الهاتف: <strong id="lab_selectedPhone">--</strong></span>
+                                        <span><i class="fas fa-user-md ml-1"></i>الفني: <input type="text" id="lab_technicianInput" placeholder="Hussam" class="px-2 py-1 border border-slate-300 rounded text-xs bg-white font-bold text-slate-800 focus:outline-none focus:border-primary w-28"></span>
+                                    </div>
+                                </div>
+                                <button onclick="printLabReport()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-2">
+                                    <i class="fas fa-print"></i> معاينة وطباعة التقرير
+                                </button>
+                            </div>
+
+                            <!-- Dynamic Test Forms -->
+                            <div class="flex-1 overflow-y-auto space-y-6 pr-1" id="lab_testFieldsContainer">
+                                <!-- Populated dynamically based on requested tests -->
+                            </div>
+
+                            <!-- Save Action Button -->
+                            <div class="pt-4 border-t border-slate-100 mt-4 flex justify-end gap-3">
+                                <button onclick="saveLabResults()" class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl transition shadow-md flex items-center gap-2">
+                                    <i class="fas fa-check-circle"></i> حفظ كافة النتائج واعتماد الفحص
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: ACCOUNTS (الحسابات والمالية) -->
+            <section id="view-accounts" class="view-section hidden fade-in">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">الحسابات والمالية الشاملة</h2>
+                        <p class="text-sm text-slate-500 mt-1">إدارة الإيرادات اليومية، المصروفات التشغيلية، الخزينة والتقفيل اليومي</p>
+                    </div>
+                    <button onclick="openExpenseModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm shadow transition flex items-center gap-2">
+                        <i class="fas fa-plus"></i> إضافة مصروف جديد
+                    </button>
+                </div>
+
+                <!-- Financial Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-xs font-bold text-slate-400">إجمالي الإيرادات (المقبوضات)</p>
+                        <p class="text-2xl font-black text-emerald-600 mt-2" id="acc_totalRevenue">0 <span class="text-xs font-normal">ج.س</span></p>
+                        <div class="mt-2 text-xs text-slate-500 space-y-1">
+                            <div class="flex justify-between"><span>نقداً (كاش):</span> <strong id="acc_cashTotal">0</strong></div>
+                            <div class="flex justify-between"><span>تطبيق بنكك:</span> <strong id="acc_bankakTotal">0</strong></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-xs font-bold text-slate-400">إجمالي المصروفات</p>
+                        <p class="text-2xl font-black text-red-500 mt-2" id="acc_totalExpenses">0 <span class="text-xs font-normal">ج.س</span></p>
+                        <p class="text-xs text-slate-400 mt-2">مواد معمل، إيجار، طوارئ...</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-xs font-bold text-slate-400">صافي الأرباح اليومية</p>
+                        <p class="text-2xl font-black text-primary mt-2" id="acc_netProfit">0 <span class="text-xs font-normal">ج.س</span></p>
+                        <p class="text-xs text-slate-400 mt-2">(الإيرادات - المصروفات)</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400">التقفيل المالي اليومي</p>
+                            <p class="text-xs text-slate-500 mt-1">طباعة تقرير ختام وردية العمل اليومية</p>
+                        </div>
+                        <button onclick="printDailyFinancialReport()" class="w-full mt-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs transition flex items-center justify-center gap-2">
+                            <i class="fas fa-print"></i> طباعة كشف الخزينة
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Financial Tables Tabs -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6">
+                    <div class="flex gap-4 border-b border-slate-200 mb-4 pb-2">
+                        <button onclick="switchAccTab('income')" id="tabBtn_income" class="font-bold text-sm px-4 py-2 text-primary border-b-2 border-primary">
+                            سجل الإيرادات والتذاكر (<span id="acc_incomeCount">0</span>)
+                        </button>
+                        <button onclick="switchAccTab('expenses')" id="tabBtn_expenses" class="font-bold text-sm px-4 py-2 text-slate-500 hover:text-slate-800">
+                            سجل المصروفات التشغيلية (<span id="acc_expenseCount">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Income Table -->
+                    <div id="acc_tab_income" class="overflow-x-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-semibold border-b">
+                                    <th class="p-3">رقم التذكرة</th>
+                                    <th class="p-3">المريض</th>
+                                    <th class="p-3">الفحوصات</th>
+                                    <th class="p-3">طريقة الدفع</th>
+                                    <th class="p-3">المبلغ</th>
+                                    <th class="p-3 text-center">الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="acc_incomeTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tab Content: Expenses Table -->
+                    <div id="acc_tab_expenses" class="overflow-x-auto hidden">
+                        <table class="w-full text-right text-sm">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-500 font-semibold border-b">
+                                    <th class="p-3">البند / البيان</th>
+                                    <th class="p-3">الفئة</th>
+                                    <th class="p-3">المبلغ</th>
+                                    <th class="p-3">التاريخ والوقت</th>
+                                    <th class="p-3">بواسطة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="acc_expensesTableBody" class="divide-y divide-slate-100">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: ADD EXPENSE MODAL -->
+    <div id="expenseModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-100">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h3 class="font-bold text-slate-800 text-lg">تسجيل مصروف جديد</h3>
+                <button onclick="closeModal('expenseModal')" class="text-slate-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+            </div>
+            <form onsubmit="handleAddExpense(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">بيان المصروف *</label>
+                    <input type="text" id="exp_title" required placeholder="مثال: شراء شرائح سكري وسوائل معمل" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">الفئة / التصنيف *</label>
+                    <select id="exp_category" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm bg-white">
+                        <option value="مستلزمات معمل">مستلزمات ومواد معمل</option>
+                        <option value="كهرباء وخدمات">كهرباء ومياه وخدمات</option>
+                        <option value="ضيافة ونثريات">ضيافة ونثريات</option>
+                        <option value="إيجار وصيانة">إيجار وصيانة أجهزة</option>
+                        <option value="أخرى">أخرى</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">المبلغ (ج.س) *</label>
+                    <input type="number" id="exp_amount" required min="1" placeholder="مثال: 15000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-primary">
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeModal('expenseModal')" class="px-4 py-2 border rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-red-500 hover:bg-red-600 text-white font-bold text-xs rounded-xl shadow">حفظ المصروف</button>
+                </div>
             </form>
         </div>
     </div>
 
-    <header class="bg-white shadow-sm sticky top-0 z-40 border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-slate-900 rounded-xl border-2 border-brand-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <i class="fa-solid fa-motorcycle text-brand-500 text-base sm:text-lg"></i>
+    <!-- MODAL 2: PRINTABLE RECEIPT MODAL -->
+    <div id="receiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 border border-slate-100 flex flex-col">
+            <div id="receiptPrintArea" class="printable-area bg-white p-4 border rounded-xl">
+                <!-- Receipt Header -->
+                <div class="text-center border-b border-dashed pb-3 mb-3">
+                    <div class="flex justify-center items-center gap-2">
+                        <i class="fas fa-heartbeat text-2xl text-primary"></i>
+                        <h2 class="text-xl font-black text-slate-800">مركز الأحباب الطبي</h2>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">إيصال استلام نقدية / تذكرة فحوصات طارئة</p>
                 </div>
-                <div>
-                    <h1 class="text-base sm:text-xl font-black text-slate-900 tracking-tight leading-tight">واصلك سريع</h1>
+                <!-- Details -->
+                <div class="text-xs space-y-1.5 mb-3">
+                    <div class="flex justify-between"><span>رقم التذكرة:</span> <strong id="recModal_ticketNo">#---</strong></div>
+                    <div class="flex justify-between"><span>اسم المريض:</span> <strong id="recModal_name">---</strong></div>
+                    <div class="flex justify-between"><span>العمر / الجنس:</span> <span id="recModal_ageGender">--</span></div>
+                    <div class="flex justify-between"><span>التاريخ والوقت:</span> <span id="recModal_date">--</span></div>
+                    <div class="flex justify-between"><span>طريقة الدفع:</span> <strong id="recModal_payMethod">--</strong></div>
+                </div>
+                <!-- Tests Items -->
+                <div class="border-t border-b py-2 my-2">
+                    <p class="text-xs font-bold text-slate-700 mb-1.5">الفحوصات المطلوبة:</p>
+                    <ul id="recModal_testsList" class="text-xs space-y-1 pr-2 list-disc list-inside text-slate-700">
+                        <!-- Populated JS -->
+                    </ul>
+                </div>
+                <!-- Total -->
+                <div class="flex justify-between items-center text-sm font-extrabold pt-1">
+                    <span>المبلغ المدفوع الإجمالي:</span>
+                    <span id="recModal_total" class="text-lg text-primary">0 ج.س</span>
+                </div>
+                <div class="text-center text-[10px] text-slate-400 mt-4 border-t pt-2">
+                    نتمنى لكم دوام الصحة والعافية - مركز الأحباب الطبي
                 </div>
             </div>
-            <div class="flex items-center gap-2">
-                <span id="logged-user-badge" class="bg-slate-100 text-slate-700 text-xs px-3 py-1.5 rounded-xl font-bold border border-slate-200 hidden sm:inline-block"></span>
-                <button onclick="logoutApp()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5" title="تسجيل الخروج">
-                    <i class="fa-solid fa-right-from-bracket"></i> <span class="hidden sm:inline">خروج</span>
+
+            <div class="flex justify-end gap-3 mt-4 no-print">
+                <button onclick="closeModal('receiptModal')" class="px-4 py-2 border rounded-xl text-xs font-bold text-slate-600">إغلاق</button>
+                <button onclick="window.print()" class="px-5 py-2 bg-primary text-white font-bold text-xs rounded-xl shadow flex items-center gap-2">
+                    <i class="fas fa-print"></i> طباعة الإيصال
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <!-- Gorgeous Advertising Banner Carousel Showcase (Top Bar) -->
-    <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white border-b border-brand-500/20 overflow-hidden relative shadow-2xl py-4 sm:py-6">
-        <div class="absolute inset-0 bg-[radial-gradient(#eab308_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
-        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 bg-brand-500/20 border border-brand-500/50 rounded-xl flex items-center justify-center text-brand-400 shadow-inner">
-                        <i class="fa-solid fa-bolt-lightning text-sm animate-bounce"></i>
-                    </div>
+    <!-- MODAL 3: PRINTABLE LAB REPORT MODAL -->
+    <div id="labReportModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-8 border border-slate-100 flex flex-col h-[90vh]">
+            <div id="labReportPrintArea" class="printable-area bg-white p-6 flex-1 overflow-y-auto">
+                <!-- Medical Report Header -->
+                <div class="border-b-2 border-teal-600 pb-4 mb-4 flex justify-between items-center">
                     <div>
-                        <span class="text-[10px] text-brand-400 font-black tracking-wider uppercase block">عروض وعروض حصرية</span>
-                        <h2 class="text-xs sm:text-sm font-black text-slate-200">شارع التحرير • الرياض • أم درمان وبحري</h2>
+                        <h2 class="text-2xl font-black text-teal-800">مركز الأحباب الطبي التخصصي</h2>
+                        <p class="text-xs font-bold text-teal-600">Al-Ahbab Private Medical Center</p>
+                        <p class="text-xs text-slate-500 mt-0.5">قسم الفحوصات والتحاليل الطبية الشاملة (Laboratory Dept.)</p>
                     </div>
-                </div>
-                <!-- Carousel dots indicators -->
-                <div class="flex justify-center gap-2 bg-slate-900/80 px-3 py-1.5 rounded-full border border-slate-800 shadow-inner" id="carousel-dots">
-                    <button onclick="switchPromoSlide(0)" class="w-2.5 h-2.5 rounded-full bg-brand-500 transition-all shadow" data-dot="0" title="العرض الأول"></button>
-                    <button onclick="switchPromoSlide(1)" class="w-2.5 h-2.5 rounded-full bg-slate-600 transition-all shadow" data-dot="1" title="عرض السرعة"></button>
-                    <button onclick="switchPromoSlide(2)" class="w-2.5 h-2.5 rounded-full bg-slate-600 transition-all shadow" data-dot="2" title="تطبيق التجار"></button>
-                </div>
-            </div>
-
-            <!-- Carousel Slides Container -->
-            <div id="promo-carousel-container" class="relative min-h-[72px] sm:min-h-[80px] flex items-center">
-                
-                <!-- Slide 1: First Order Discount & Promo Code -->
-                <div class="promo-slide absolute inset-0 flex items-center justify-between bg-gradient-to-r from-brand-500/10 via-slate-900 to-slate-900 border border-brand-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-700 opacity-100 translate-y-0 shadow-lg" data-index="0">
-                    <div class="flex items-center gap-3 sm:gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-brand-500 text-slate-950 font-black flex flex-col items-center justify-center text-xs shadow-md flex-shrink-0">
-                            <span class="text-base font-black">50%</span>
-                            <span class="text-[9px]">خصم</span>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="bg-brand-500 text-slate-950 px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black">العرض الذهبي 🔥</span>
-                                <span class="text-slate-400 text-xs hidden sm:inline">أول توصيل عليك مجاناً تقريباً</span>
-                            </div>
-                            <p class="text-xs sm:text-sm font-bold text-slate-100">
-                                خصم <span class="text-brand-400 font-black">50%</span> على تكلفة التوصيل الأولى! استخدم كود الخصم: <code class="bg-slate-950 border border-brand-500/50 px-2.5 py-1 rounded-lg text-brand-400 font-mono font-bold tracking-wider ml-1">FIRST50</code>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="hidden lg:flex items-center gap-2 text-brand-400 font-bold text-xs bg-brand-500/10 px-3 py-2 rounded-xl border border-brand-500/20">
-                        <i class="fa-solid fa-gift"></i> سارع بالطلب الآن
+                    <div class="text-left text-xs text-slate-600">
+                        <p class="font-bold text-slate-800">LABORATORY REPORT</p>
+                        <p id="report_date">التاريخ: --/--/----</p>
+                        <p id="report_sampleId" class="font-mono font-bold text-teal-700">Sample ID: ---</p>
                     </div>
                 </div>
 
-                <!-- Slide 2: Lightning Fast Delivery across Sudan -->
-                <div class="promo-slide absolute inset-0 flex items-center justify-between bg-gradient-to-r from-emerald-500/10 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-700 opacity-0 translate-y-4 pointer-events-none shadow-lg" data-index="1">
-                    <div class="flex items-center gap-3 sm:gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500 text-white font-black flex items-center justify-center text-xl shadow-md flex-shrink-0">
-                            <i class="fa-solid fa-motorcycle"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="bg-emerald-500 text-white px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black">سرعة وأمان ⚡</span>
-                                <span class="text-slate-400 text-xs hidden sm:inline">تغطية شاملة لكل الأحياء</span>
-                            </div>
-                            <p class="text-xs sm:text-sm font-bold text-slate-100">
-                                أسطول دراجات نارية جاهز على مدار الساعة لتوصيل الأطعمة، الأدوية، والمستندات الرسمية بكل أمان وسرعة فائقة.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="hidden lg:flex items-center gap-2 text-emerald-400 font-bold text-xs bg-emerald-500/10 px-3 py-2 rounded-xl border border-emerald-500/20">
-                        <i class="fa-solid fa-shield-halved"></i> توصيل مضمون 100%
-                    </div>
+                <!-- Patient Details Strip -->
+                <div class="bg-slate-50 p-3 rounded-lg border text-xs grid grid-cols-3 gap-2 mb-6">
+                    <div>اسم المريض: <strong id="report_patientName" class="text-slate-800">---</strong></div>
+                    <div>رقم التذكرة: <strong id="report_ticketNo" class="text-slate-800">#---</strong></div>
+                    <div>العمر/الجنس: <span id="report_ageGender">---</span></div>
+                    <div>رقم العينة: <strong id="report_sampleIdDetail" class="text-teal-700 font-mono">---</strong></div>
+                    <div>الفني (Technician): <strong id="report_technician" class="text-slate-800">Hussam</strong></div>
+                    <div>طبيب الحالة: <span>معمل المركز</span></div>
                 </div>
 
-                <!-- Slide 3: Merchant & 24/7 Support Partnership -->
-                <div class="promo-slide absolute inset-0 flex items-center justify-between bg-gradient-to-r from-blue-600/10 via-slate-900 to-slate-900 border border-blue-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-700 opacity-0 translate-y-4 pointer-events-none shadow-lg" data-index="2">
-                    <div class="flex items-center gap-3 sm:gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-xl shadow-md flex-shrink-0">
-                            <i class="fa-solid fa-store"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="bg-blue-600 text-white px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-black">شراكات المتاجر 🤝</span>
-                                <span class="text-slate-400 text-xs hidden sm:inline">ارفع مبيعات متجرك معنا</span>
-                            </div>
-                            <p class="text-xs sm:text-sm font-bold text-slate-100">
-                                هل تمتلك مطعماً أو صيدلية أو متجراً؟ انضم اليوم لشبكة تجار "واصلك سريع" وضاعف مبيعاتك مع توصيل فوري لزبائنك.
-                            </p>
-                        </div>
-                    </div>
-                    <button onclick="openSupportModal()" class="hidden lg:flex items-center gap-2 text-blue-400 font-bold text-xs bg-blue-500/10 hover:bg-blue-500/25 px-3 py-2 rounded-xl border border-blue-500/30 transition">
-                        <i class="fa-solid fa-headset"></i> تواصل مع خدمة التجار
-                    </button>
+                <!-- Test Results Output -->
+                <div class="space-y-6" id="report_resultsContainer">
+                    <!-- Populated by JS -->
                 </div>
 
-            </div>
-        </div>
-    </div>
-
-    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-grow w-full">
-        
-        <!-- Role View 1: Client / Merchant -->
-        <div id="view-client" class="space-y-4 sm:space-y-8 hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                <!-- Order Form Card -->
-                <div class="lg:col-span-2 bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-4 sm:mb-6">
-                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-                            <i class="fa-solid fa-box-open text-brand-600"></i> بيانات طلب التوصيل
-                        </h3>
-                        <button onclick="openSupportModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-headset text-amber-600"></i> خدمة العملاء والشكاوى
-                        </button>
+                <!-- Footer Signatures -->
+                <div class="mt-12 pt-6 border-t flex justify-between items-end text-xs text-slate-600">
+                    <div class="text-center">
+                        <p class="font-bold">فني المعمل المختص (Technician)</p>
+                        <p id="report_footerTechnician" class="mt-1 font-semibold text-slate-800">Hussam</p>
+                        <p class="mt-6 text-slate-400">التوقيع والختم</p>
                     </div>
-                    <form onsubmit="handleCreateOrder(event)" class="space-y-4 sm:space-y-6">
-                        <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-3">اختر تصنيف الطلب الأساسي</label>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-                                <button type="button" onclick="selectCategory('أطعمة ومشروبات', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2">
-                                    <i class="fa-solid fa-utensils text-lg sm:text-xl text-brand-600"></i>
-                                    أطعمة ومشروبات
-                                </button>
-                                <button type="button" onclick="selectCategory('أوراق ومستندات', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2">
-                                    <i class="fa-solid fa-file-lines text-lg sm:text-xl text-brand-600"></i>
-                                    أوراق ومستندات
-                                </button>
-                                <button type="button" onclick="selectCategory('أدوية وصيدلية', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2">
-                                    <i class="fa-solid fa-pills text-lg sm:text-xl text-brand-600"></i>
-                                    أدوية وصيدلية
-                                </button>
-                                <button type="button" onclick="selectCategory('أغراض أخرى', this)" class="cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-brand-500 bg-brand-50 transition text-slate-900 font-bold text-xs gap-1.5 sm:gap-2 ring-2 ring-brand-500">
-                                    <i class="fa-solid fa-box text-lg sm:text-xl text-brand-600"></i>
-                                    أغراض أخرى
-                                </button>
-                            </div>
-                            <input type="hidden" id="order-category" value="أغراض أخرى">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">اسم الطلب التفصيلي أو الملاحظات</label>
-                            <input type="text" id="order-desc" required placeholder="مثال: وجبة برجر دبل من مطعم السعادة، أو ظرف أوراق رسمية" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium">
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"><i class="fa-solid fa-store text-brand-600"></i> مكان الاستلام (من أين؟)</label>
-                                <input type="text" id="order-pickup" required placeholder="مثال: مطعم الشوكة الذهبية - شارع التحرير" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium" oninput="calculateDynamicFee()">
-                            </div>
-                            <div>
-                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"><i class="fa-solid fa-location-dot text-rose-500"></i> مكان التوصيل (إلى أين؟)</label>
-                                <input type="text" id="order-dropoff" required placeholder="مثال: حي الرياض - شارع الأمير سلطان" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium" oninput="calculateDynamicFee()">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">رقم الجوال للتواصل</label>
-                                <input type="tel" id="order-phone" required placeholder="09xxxxxxxx" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none focus:border-brand-500 font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2 flex justify-between items-center">
-                                    <span>أجرة التوصيل المحسوبة تلقائياً</span>
-                                    <span class="text-[10px] sm:text-xs text-brand-700 bg-brand-100 px-2 py-0.5 rounded-full font-bold">10k - 30k SDG</span>
-                                </label>
-                                <input type="text" id="order-price" readonly value="15,000 SDG" class="w-full bg-slate-100 border border-slate-200 rounded-xl px-3.5 sm:px-4 py-3 text-sm sm:text-base focus:outline-none font-bold text-brand-700">
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-900 font-black py-3.5 sm:py-4 rounded-xl shadow-lg shadow-brand-500/25 transition text-base sm:text-lg mt-2 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-paper-plane"></i> إرسال الطلب للسائقين فوراً
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Active Orders & Direct Client Workflow Panel -->
-                <div class="space-y-6 flex flex-col">
-                    <div class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 flex flex-col">
-                        <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-clock-rotate-left text-brand-600"></i> طلباتك النشطة
-                        </h3>
-                        <div id="client-orders-list" class="space-y-3 max-h-[250px] overflow-y-auto">
-                            <p class="text-slate-400 text-xs sm:text-sm text-center py-4">لا توجد طلبات نشطة حالياً. قم بإرسال طلب جديد.</p>
-                        </div>
-                    </div>
-
-                    <!-- Direct Order Status & Workflow Panel -->
-                    <div id="client-direct-workflow-panel" class="bg-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 hidden flex flex-col">
-                        <h3 class="text-sm sm:text-base font-bold text-slate-900 mb-3 flex items-center gap-2 border-b border-slate-100 pb-2">
-                            <i class="fa-solid fa-circle-info text-brand-600"></i> تفاصيل الطلب وحالة التوصيل
-                        </h3>
-                        <div id="direct-workflow-content" class="space-y-3">
-                            <!-- Dynamically populated -->
-                        </div>
+                    <div class="text-center">
+                        <p class="font-bold">مركز الأحباب الطبي التخصصي - قسم المختبر</p>
+                        <p class="text-[10px] text-slate-400 mt-1">تعد هذه النتيجة معتمدة رسمياً من المختبر</p>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Role View 2: Driver (Captain Dashboard) -->
-        <div id="view-driver" class="space-y-6 hidden">
-            <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-slate-700">
-                <div>
-                    <span class="bg-brand-500/20 text-brand-400 border border-brand-500/30 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-bold inline-block mb-2 sm:mb-3">لوحة الكابتن (السائق)</span>
-                    <h2 class="text-xl sm:text-3xl font-black">الطلبات المتاحة في السحابة</h2>
-                    <p class="text-slate-300 text-xs sm:text-sm mt-1">اتبع خطوات الكابتن الثلاث: 1. استلام الطلبية ➔ 2. أنا في الطريق ➔ 3. أنا وصلت.</p>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl sm:rounded-2xl flex items-center gap-2.5 self-stretch sm:self-auto justify-center">
-                    <div class="w-2.5 h-2.5 bg-brand-500 rounded-full animate-ping"></div>
-                    <span class="text-xs sm:text-sm font-bold text-brand-400">الكابتن متصل بالسحابة</span>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200">
-                <h3 class="text-lg sm:text-xl font-bold text-slate-900 mb-4 sm:mb-6 flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-brand-600"></i> قائمة الطلبات الواردة من العملاء عبر الشبكة
-                </h3>
-                <div id="driver-orders-list" class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    <div class="col-span-full text-center py-12 text-slate-400 font-medium text-sm">
-                        جاري جلب الطلبات من السحابة...
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <div id="toast" class="fixed bottom-4 left-4 right-4 sm:right-auto z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl transform translate-y-28 opacity-0 transition-all duration-300 font-bold text-xs sm:text-sm flex items-center gap-3 border border-slate-700">
-        <i class="fa-solid fa-circle-check text-brand-500 text-base sm:text-lg flex-shrink-0"></i>
-        <span id="toast-message" class="truncate">تمت العملية بنجاح!</span>
-    </div>
-
-    <div id="order-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-            <div class="bg-slate-900 text-white p-4 sm:p-5 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-map-location-dot text-brand-500"></i>
-                    <h3 id="modal-order-title" class="font-black text-sm sm:text-base">خريطة تتبع الطلب</h3>
-                </div>
-                <button onclick="closeOrderModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
+            <div class="flex justify-end gap-3 mt-4 no-print pt-3 border-t">
+                <button onclick="closeModal('labReportModal')" class="px-4 py-2 border rounded-xl text-xs font-bold text-slate-600">إغلاق</button>
+                <button onclick="window.print()" class="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2">
+                    <i class="fas fa-print"></i> طباعة النتيجة الطبية
                 </button>
             </div>
-            <div id="modal-order-body" class="p-4 sm:p-6 overflow-y-auto space-y-4 text-right">
-                <!-- Dynamically populated -->
-            </div>
         </div>
     </div>
 
-    <div id="support-modal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl flex flex-col">
-            <div class="bg-slate-900 text-white p-4 sm:p-5 flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-headset text-brand-500 text-lg"></i>
-                    <h3 class="font-black text-sm sm:text-base">خدمة العملاء والشكاوى (واصلك سريع)</h3>
-                </div>
-                <button onclick="closeSupportModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="p-5 sm:p-6 space-y-4 text-right">
-                <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 font-bold space-y-1">
-                    <p class="flex items-center gap-1.5 text-amber-800 font-black"><i class="fa-solid fa-clock"></i> هل تأخر طلبك أو تواجه مشكلة مع الكابتن؟</p>
-                    <p class="font-normal text-slate-700">فريق خدمة العملاء جاهز لمتابعة شكواك وحلها فوراً على مدار الساعة طوال أيام الأسبوع في السودان.</p>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] text-slate-500 font-bold block">الخط الساخن لخدمة العملاء</span>
-                            <span class="text-sm font-black text-slate-900 tracking-wider">0912000000 / 0123000000</span>
-                        </div>
-                        <a href="tel:0912000000" class="bg-brand-500 hover:bg-brand-600 text-slate-900 px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-phone"></i> اتصال مباشر
-                        </a>
-                    </div>
-
-                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
-                        <div>
-                            <span class="text-[10px] text-slate-500 font-bold block">قسم الشكاوي والاسترداد (واتساب)</span>
-                            <span class="text-sm font-black text-emerald-700 tracking-wider">+249 91 234 5678</span>
-                        </div>
-                        <a href="https://wa.me/249912345678" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
-                            <i class="fa-brands fa-whatsapp text-sm"></i> مراسلة واتساب
-                        </a>
-                    </div>
-                </div>
-
-                <div class="bg-slate-100 p-3 rounded-xl text-[11px] text-slate-600 font-medium text-center">
-                    مقرنا الرئيسي: الخرطوم • شارع العرضة / استجابة سريعة لجميع الولايات.
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, updateDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wasil-saree-delivery-sd';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "demo", projectId: "demo" };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : undefined;
-
-        let app, db, auth;
-        let currentUser = null;
-        let orders = [];
-        let selectedActiveOrderId = null;
-
-        const driverProfiles = [
-            { name: 'عمر التاج', bike: 'هوجن 3 (150cc)', plate: 'خرطوم • 89234' },
-            { name: 'مصعب إبراهيم', bike: 'سوزوكي إكسبريس', plate: 'أم درمان • 12456' },
-            { name: 'مهند النور', bike: 'بجاج بوكسر', plate: 'بحري • 67812' }
+    <script>
+        // Catalog of available lab tests with default prices (in SDG) & reference ranges
+        const LAB_CATALOG = [
+            { 
+                id: 'cbc', 
+                name: 'صورة دم كاملة (HEMATOLOGY - CBC)', 
+                price: 6000, 
+                category: 'HEMATOLOGY - Complete Blood Count', 
+                fields: [
+                    { id: 'wbc', label: 'WBC (White Blood Cells)', unit: '×10³/µL', normal: '4.0 – 11.0' },
+                    { id: 'rbc', label: 'RBC (Red Blood Cells)', unit: '×10⁶/µL', normal: '4.5 – 5.5' },
+                    { id: 'hgb', label: 'HGB (Hemoglobin)', unit: 'g/dL', normal: '12 – 18' },
+                    { id: 'hgb_percent', label: 'HGB%', unit: '%', normal: '75 – 116' },
+                    { id: 'hct', label: 'HCT (Hematocrit)', unit: '%', normal: '35 – 48' },
+                    { id: 'mcv', label: 'MCV', unit: 'fL', normal: '80 – 101' },
+                    { id: 'mch', label: 'MCH', unit: 'pg', normal: '25 – 31' },
+                    { id: 'mchc', label: 'MCHC', unit: 'g/dL', normal: '32 – 36' },
+                    { id: 'plt', label: 'PLT (Platelets)', unit: '×10³/µL', normal: '150 – 450' },
+                    { id: 'ly_num', label: 'LY# (Lymphocytes Count)', unit: '×10³/µL', normal: '1.0 – 3.0' },
+                    { id: 'ly_pct', label: 'LY% (Lymphocytes %)', unit: '%', normal: '20 – 40' },
+                    { id: 'mo_num', label: 'MO# (Monocytes Count)', unit: '×10³/µL', normal: '0.2 – 1.0' },
+                    { id: 'mo_pct', label: 'MO% (Monocytes %)', unit: '%', normal: '2 – 10' },
+                    { id: 'gr_num', label: 'GR# (Granulocytes Count)', unit: '×10³/µL', normal: '2.0 – 7.5' },
+                    { id: 'gr_pct', label: 'GR% (Granulocytes %)', unit: '%', normal: '40 – 70' },
+                    { id: 'rdw_cv', label: 'RDW-CV', unit: '%', normal: '11 – 16' },
+                    { id: 'rdw_sd', label: 'RDW-SD', unit: 'fL', normal: '39 – 46' },
+                    { id: 'pct', label: 'PCT', unit: '%', normal: '0.2 – 0.5' },
+                    { id: 'mpv', label: 'MPV', unit: 'fL', normal: '9 – 13' },
+                    { id: 'pdw', label: 'PDW', unit: 'fL', normal: '9 – 17' }
+                ]
+            },
+            { 
+                id: 'typhoid_immunology', 
+                name: 'فحص التايفويد المناعي (IMMUNOLOGY - Typhoid)', 
+                price: 3500, 
+                category: 'IMMUNOLOGY - Typhoid', 
+                fields: [
+                    { id: 'typhoid_igg', label: 'IgG', unit: '-', type: 'select', options: ['NEGATIVE', 'POSITIVE'], normal: 'NEGATIVE' },
+                    { id: 'typhoid_igm', label: 'IgM', unit: '-', type: 'select', options: ['NEGATIVE', 'POSITIVE'], normal: 'NEGATIVE' }
+                ]
+            },
+            { 
+                id: 'malaria', 
+                name: 'فحص الملاريا في الدم (ROUTINE - BFFM)', 
+                price: 2500, 
+                category: 'ROUTINE - BFFM', 
+                fields: [
+                    { id: 'bf_malaria', label: 'B.F. for Malaria', unit: '-', type: 'select', options: ['Malaria Parasite Seen', 'No Malaria Parasite Seen'], normal: 'No Malaria Parasite Seen' },
+                    { id: 'bf_type', label: 'Type', unit: '-', type: 'select', options: ['P.Falciparum', 'P.Vivax', 'P.Ovale', 'P.Malariae', '-'], normal: '-' },
+                    { id: 'bf_stage', label: 'Stage', unit: '-', type: 'select', options: ['Ring', 'Trophozoite', 'Schizont', 'Gamete', '-'], normal: '-' },
+                    { id: 'bf_density', label: 'Density', unit: '-', type: 'select', options: ['(+)', '(++)', '(+++)', '(++++)', '-'], normal: '-' }
+                ]
+            },
+            { id: 'typhoid', name: 'فحص تايفويد تفاعلي (Widal Test)', price: 3000, category: 'Serology', fields: [
+                { id: 's_typhi_o', label: 'S. Typhi (O)', unit: 'Titre', normal: '1:80 or less' },
+                { id: 's_typhi_h', label: 'S. Typhi (H)', unit: 'Titre', normal: '1:80 or less' }
+            ]},
+            { id: 'rbs', name: 'سكر الدم العشوائي (RBS)', price: 2000, category: 'Biochemistry', fields: [
+                { id: 'rbs_val', label: 'Random Blood Sugar', unit: 'mg/dL', normal: '70 - 140' }
+            ]},
+            { 
+                id: 'urine', 
+                name: 'فحص البول العام (URINE ANALYSIS - Urine General)', 
+                price: 3000, 
+                category: 'URINALYSIS - General Urine', 
+                fields: [
+                    // MACROSCOPIC & CHEMICAL
+                    { id: 'u_colour', label: 'Colour (اللون)', unit: '-', normal: 'Yellow' },
+                    { id: 'u_clarity', label: 'Clarity (المظهر)', unit: '-', normal: 'Clear' },
+                    { id: 'u_sgravity', label: 'S.Gravity (الوزن النوعي)', unit: '-', normal: '1.005 – 1.030' },
+                    { id: 'u_ph', label: 'pH (التفاعل)', unit: '-', normal: 'Acidic' },
+                    { id: 'u_protein', label: 'Protein (البروتين)', unit: '-', normal: 'Nil' },
+                    { id: 'u_sugar', label: 'Sugar (السكّر)', unit: '-', normal: 'Nil' },
+                    { id: 'u_ketones', label: 'Ketones (الكيتون)', unit: '-', normal: 'Nil' },
+                    { id: 'u_bilirubin', label: 'Bilirubin (البليروبين)', unit: '-', normal: 'Nil' },
+                    { id: 'u_urobilinogen', label: 'Urobilinogen (اليوروبيلينوجين)', unit: '-', normal: 'Nil' },
+                    { id: 'u_nitrite', label: 'Nitrite (النيتريت)', unit: '-', normal: 'Nil' },
+                    // MICROSCOPIC
+                    { id: 'u_pus', label: 'Pus Cells / HPF (خلايا صديدية)', unit: '/HPF', normal: '0 – 5' },
+                    { id: 'u_rbc', label: 'RBCs / HPF (كريات دم حمراء)', unit: '/HPF', normal: '0 – 2' },
+                    { id: 'u_epithelial', label: 'Epithelial Cells (خلايا بشرية)', unit: '-', normal: 'Nil' },
+                    { id: 'u_crystals', label: 'Crystals (أملاح وكريستالات)', unit: '-', normal: 'Nil' },
+                    { id: 'u_casts', label: 'Casts (أشكال اسطوانية)', unit: '-', normal: 'Nil' },
+                    { id: 'u_mucous', label: 'Mucous Threads (خيوط مخاطية)', unit: '-', normal: 'Nil' },
+                    { id: 'u_ova', label: 'Ova (بويضات طفيليات)', unit: '-', normal: 'Nil' },
+                    { id: 'u_bacteria', label: 'Bacteria (بكتيريا)', unit: '-', normal: 'Nil' },
+                    { id: 'u_yeast', label: 'Yeast (فطريات خمائر)', unit: '-', normal: 'Nil' }
+                ]
+            },
+            { id: 'stool', name: 'فحص براز (General Stool)', price: 2500, category: 'Parasitology', fields: [
+                { id: 'st_res', label: 'Microscopic Finding', type: 'text', placeholder: 'No ova or parasites seen / E. Histolytica' }
+            ]},
+            { id: 'lft', name: 'وظائف كبد (Liver Function)', price: 10000, category: 'Biochemistry', fields: [
+                { id: 'sgot', label: 'ALT (SGPT)', unit: 'U/L', normal: 'Up to 40' },
+                { id: 'sgpt', label: 'AST (SGOT)', unit: 'U/L', normal: 'Up to 40' },
+                { id: 'bil', label: 'Total Bilirubin', unit: 'mg/dL', normal: '0.2 - 1.2' }
+            ]}
         ];
 
-        async function initFirebase() {
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+        // Application State
+        const state = {
+            currentUser: null,
+            tickets: [
+                {
+                    ticketNo: '1001',
+                    sampleId: 'LR-20260918-14',
+                    patientName: 'عبد الله الريح',
+                    age: 0,
+                    gender: 'ذكر',
+                    phone: '0912345678',
+                    technician: 'Hussam',
+                    tests: ['typhoid_immunology', 'cbc'],
+                    totalAmount: 9500,
+                    payMethod: 'cash',
+                    date: '2026/09/18',
+                    time: '10:15 ص',
+                    labStatus: 'completed',
+                    results: {
+                        typhoid_igg: 'NEGATIVE',
+                        typhoid_igm: 'NEGATIVE',
+                        wbc: '6.8',
+                        rbc: '4.19',
+                        hgb: '13.2',
+                        hgb_percent: '89.8',
+                        hct: '38',
+                        mcv: '90.7',
+                        mch: '31.5',
+                        mchc: '34.7',
+                        plt: '130',
+                        ly_num: '3.1',
+                        ly_pct: '45.6',
+                        mo_num: '0.6',
+                        mo_pct: '8.8',
+                        gr_num: '3.1',
+                        gr_pct: '45.6',
+                        rdw_cv: '13.6',
+                        rdw_sd: '49.3',
+                        pct: '0.099',
+                        mpv: '7.6',
+                        pdw: '19.7'
+                    }
+                },
+                {
+                    ticketNo: '1002',
+                    sampleId: 'LR-20260918-15',
+                    patientName: 'فاطمة الحسن عمر',
+                    age: 26,
+                    gender: 'أنثى',
+                    phone: '0123456789',
+                    technician: 'Hussam',
+                    tests: ['rbs', 'malaria'],
+                    totalAmount: 4500,
+                    payMethod: 'bankak',
+                    date: '2026/09/18',
+                    time: '11:00 ص',
+                    labStatus: 'completed',
+                    results: {
+                        rbs_val: '110',
+                        bf_malaria: 'Malaria Parasite Seen',
+                        bf_type: 'P.Falciparum',
+                        bf_stage: 'Ring',
+                        bf_density: '(++)'
+                    }
+                },
+                {
+                    ticketNo: '1003',
+                    sampleId: 'LR-20260918-16',
+                    patientName: 'عثمان عبد الماجد',
+                    age: 42,
+                    gender: 'ذكر',
+                    phone: '0987654321',
+                    technician: 'Hussam',
+                    tests: ['urine'],
+                    totalAmount: 3000,
+                    payMethod: 'cash',
+                    date: '2026/09/18',
+                    time: '11:45 ص',
+                    labStatus: 'completed',
+                    results: {
+                        u_colour: 'Deep Yellow',
+                        u_clarity: 'Clear',
+                        u_sgravity: '-',
+                        u_ph: 'Acidic',
+                        u_protein: 'Nil',
+                        u_sugar: 'Nil',
+                        u_ketones: 'Nil',
+                        u_bilirubin: '+',
+                        u_urobilinogen: 'Normal',
+                        u_nitrite: 'Negative',
+                        u_pus: '4-6',
+                        u_rbc: '3-5',
+                        u_epithelial: 'Nil',
+                        u_crystals: 'Nil',
+                        u_casts: 'Nil',
+                        u_mucous: 'Nil',
+                        u_ova: '-',
+                        u_bacteria: '-',
+                        u_yeast: '-'
+                    }
+                }
+            ],
+            expenses: [
+                { id: 'E-1', title: 'شرائح ملاريا ومواد سحب دم', category: 'مستلزمات معمل', amount: 12000, date: '2026/09/18', time: '09:30 ص', user: 'مدير النظام' }
+            ],
+            selectedLabTicketNo: null
+        };
 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
+        window.onload = function() {
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            renderTestSelectionGrid();
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const role = document.getElementById('roleSelect').value;
+            
+            const roleNames = {
+                admin: 'مدير النظام والمحاسب',
+                reception: 'موظف الاستقبال',
+                lab: 'فني المعمل'
+            };
+
+            state.currentUser = { role: role, name: roleNames[role] };
+
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('currentUserBadge').innerText = state.currentUser.name;
+
+            // Apply Role-Based Access Control
+            document.querySelectorAll('.role-restricted').forEach(item => {
+                const allowed = item.getAttribute('data-allowed').split(',');
+                if (allowed.includes(role)) {
+                    item.style.display = 'flex';
                 } else {
-                    await signInAnonymously(auth);
+                    item.style.display = 'none';
                 }
+            });
 
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        setupRealtimeSync(db);
-                    }
-                });
-            } catch (err) {
-                console.error("Firebase Init Error:", err);
-            }
+            // Default Route
+            if(role === 'lab') navigateTo('lab');
+            else if(role === 'reception') navigateTo('reception');
+            else navigateTo('dashboard');
+
+            refreshAllViews();
+            showToast(`أهلاً بك، تم تسجيل الدخول كـ ${state.currentUser.name}`, 'success');
+        });
+
+        function logout() {
+            state.currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginOverlay').classList.remove('hidden');
         }
 
-        function setupRealtimeSync(database) {
-            const ordersRef = collection(database, 'artifacts', appId, 'public', 'data', 'orders');
-            onSnapshot(query(ordersRef), (snapshot) => {
-                orders = [];
-                snapshot.forEach((docSnap) => {
-                    orders.push({ id: docSnap.id, ...docSnap.data() });
-                });
-                
-                // Sort by newest
-                orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        function navigateTo(viewId) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.querySelector(`.nav-btn[data-target="${viewId}"]`);
+            if(activeBtn) activeBtn.classList.add('active');
 
-                if (currentUser) {
-                    if (currentUser.role === 'client') {
-                        renderClientOrders();
-                    } else {
-                        renderDriverOrders();
-                    }
-                }
-            }, (error) => {
-                console.error("Firestore sync error:", error);
-            });
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById(`view-${viewId}`);
+            if(target) target.classList.remove('hidden');
+
+            refreshAllViews();
         }
 
-        window.setAuthRole = function(role) {
-            const clientLabel = document.getElementById('role-client-label');
-            const driverLabel = document.getElementById('role-driver-label');
-            
-            if (role === 'client') {
-                clientLabel.className = 'cursor-pointer border-2 border-brand-500 bg-brand-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
-                driverLabel.className = 'cursor-pointer border-2 border-slate-200 bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
-                document.querySelector('input[value="client"]').checked = true;
-            } else {
-                driverLabel.className = 'cursor-pointer border-2 border-brand-500 bg-brand-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
-                clientLabel.className = 'cursor-pointer border-2 border-slate-200 bg-slate-50 rounded-2xl p-4 flex flex-col items-center justify-center text-center transition hover:shadow-sm';
-                document.querySelector('input[value="driver"]').checked = true;
-            }
-        };
+        function refreshAllViews() {
+            renderDashboard();
+            renderReceptionQueue();
+            renderLabQueue();
+            renderAccounts();
+        }
 
-        window.handleAuthSubmit = function(e) {
-            e.preventDefault();
-            const phoneNum = document.getElementById('auth-phone').value.trim();
-            const selectedRole = document.querySelector('input[name="auth_role"]:checked').value;
-
-            if (phoneNum.length < 9) {
-                showToast('الرجاء إدخال رقم هاتف صحيح في السودان');
-                return;
-            }
-
-            currentUser = {
-                phone: '+249 ' + phoneNum,
-                role: selectedRole
-            };
-
-            document.getElementById('logged-user-badge').innerText = (selectedRole === 'client' ? '👤 عميل: ' : '🏍️ كابتن: ') + currentUser.phone;
-            document.getElementById('auth-screen').classList.add('hidden');
-
-            const clientView = document.getElementById('view-client');
-            const driverView = document.getElementById('view-driver');
-
-            if (selectedRole === 'client') {
-                clientView.classList.remove('hidden');
-                driverView.classList.add('hidden');
-                document.getElementById('order-phone').value = '+249 ' + phoneNum;
-                renderClientOrders();
-                showToast('مرحباً بك في واصلك سريع - لوحة العميل السحابية');
-            } else {
-                clientView.classList.add('hidden');
-                driverView.classList.remove('hidden');
-                renderDriverOrders();
-                showToast('مرحباً بك كابتن - متصل بالشبكة الحية');
-            }
-        };
-
-        window.logoutApp = function() {
-            currentUser = null;
-            document.getElementById('auth-screen').classList.remove('hidden');
-            document.getElementById('view-client').classList.add('hidden');
-            document.getElementById('view-driver').classList.add('hidden');
-            document.getElementById('auth-phone').value = '';
-            showToast('تم تسجيل الخروج بنجاح');
-        };
-
-        window.calculateDynamicFee = function() {
-            const dropoffVal = document.getElementById('order-dropoff').value.trim();
-            let calculatedFee = 15000;
-            if (dropoffVal.length > 0) {
-                const hash = dropoffVal.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-                calculatedFee = 10000 + (hash % 21) * 1000;
-            }
-            document.getElementById('order-price').value = calculatedFee.toLocaleString() + ' SDG';
-        };
-
-        window.selectCategory = function(categoryName, btnElement) {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.className = 'cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-brand-500 bg-slate-50 transition text-slate-700 font-bold text-xs gap-1.5 sm:gap-2';
-            });
-            btnElement.className = 'cat-btn flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 border-brand-500 bg-brand-50 transition text-slate-900 font-bold text-xs gap-1.5 sm:gap-2 ring-2 ring-brand-500';
-            document.getElementById('order-category').value = categoryName;
-        };
-
-        window.handleCreateOrder = async function(e) {
-            e.preventDefault();
-            const category = document.getElementById('order-category').value;
-            const desc = document.getElementById('order-desc').value;
-            const pickup = document.getElementById('order-pickup').value;
-            const dropoff = document.getElementById('order-dropoff').value;
-            const phone = document.getElementById('order-phone').value;
-            const price = document.getElementById('order-price').value;
-
-            const randomDriver = driverProfiles[Math.floor(Math.random() * driverProfiles.length)];
-            const orderId = 'W-'.toUpperCase() + Math.floor(1000 + Math.random() * 9000);
-
-            const newOrderData = {
-                id: orderId,
-                category,
-                desc,
-                pickup,
-                dropoff,
-                phone,
-                price,
-                status: 'بانتظار قبول السائق',
-                driverName: randomDriver.name,
-                driverBike: randomDriver.bike,
-                driverPlate: randomDriver.plate,
-                driverPhone: '+249 9' + Math.floor(10000000 + Math.random() * 90000000),
-                createdAt: Date.now()
-            };
-
-            try {
-                const orderDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await setDoc(orderDocRef, newOrderData);
-                selectedActiveOrderId = orderId;
-                showToast('تم إرسال الطلب سحابياً إلى السائقين!');
-                e.target.reset();
-                document.getElementById('order-phone').value = currentUser ? currentUser.phone : '';
-                document.getElementById('order-price').value = '15,000 SDG';
-            } catch (err) {
-                console.error("Error creating order:", err);
-                showToast('حدث خطأ أثناء إرسال الطلب سحابياً');
-            }
-        };
-
-        function renderClientOrders() {
-            const container = document.getElementById('client-orders-list');
-            const workflowPanel = document.getElementById('client-direct-workflow-panel');
-            if (!container || !workflowPanel) return;
-
-            if (orders.length === 0) {
-                container.innerHTML = `<p class="text-slate-400 text-xs sm:text-sm text-center py-4">لا توجد طلبات نشطة حالياً.</p>`;
-                workflowPanel.classList.add('hidden');
-                return;
-            }
-
+        function renderTestSelectionGrid() {
+            const container = document.getElementById('testSelectionContainer');
             container.innerHTML = '';
-            orders.forEach(order => {
-                const el = document.createElement('div');
-                el.className = `p-3.5 bg-slate-50 rounded-xl border transition hover:shadow-sm flex items-center justify-between gap-3 ${selectedActiveOrderId === order.id ? 'border-brand-500 ring-2 ring-brand-500/20 bg-brand-50/30' : 'border-slate-200'}`;
-                
-                let badgeColor = 'bg-amber-100 text-amber-800';
-                if (order.status === 'بانتظار تأكيد العميل') badgeColor = 'bg-blue-100 text-blue-800';
-                if (order.status === 'موافق للبدء (جاهز للحركة)' || order.status === 'جاري التوصيل' || order.status === 'الكابتن وصل الموقع') badgeColor = 'bg-indigo-100 text-indigo-800';
-                if (order.status === 'تم توصيل الطلب بنجاح') badgeColor = 'bg-emerald-100 text-emerald-800';
-                if (order.status === 'تم إلغاء الطلب') badgeColor = 'bg-rose-100 text-rose-800';
 
-                el.innerHTML = `
-                    <div class="flex-grow min-w-0 cursor-pointer" onclick="selectActiveOrder('${order.id}')">
-                        <div class="flex items-center gap-2 text-xs">
-                            <span class="font-black text-slate-900">${order.id}</span>
-                            <span class="font-bold px-2 py-0.5 rounded-full ${badgeColor}">${order.status}</span>
+            LAB_CATALOG.forEach(test => {
+                container.innerHTML += `
+                    <label class="p-3 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-sky-50 hover:border-sky-300 cursor-pointer transition flex flex-col justify-between select-none">
+                        <div class="flex items-start gap-2 mb-2">
+                            <input type="checkbox" name="selected_tests" value="${test.id}" onchange="updateCalculatedTotal()" class="mt-1 form-checkbox text-primary rounded h-4 w-4">
+                            <span class="text-xs font-bold text-slate-800 leading-snug">${test.name}</span>
                         </div>
-                        <p class="text-slate-800 font-bold text-xs mt-1 truncate">${order.desc}</p>
-                    </div>
-                    <div class="flex items-center gap-1.5 flex-shrink-0">
-                        <button onclick="selectActiveOrder('${order.id}')" class="bg-slate-900 hover:bg-slate-800 text-brand-400 px-2.5 py-2 rounded-xl text-xs font-bold transition shadow-sm" title="عرض التفاصيل">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                        <button onclick="openOrderModal('${order.id}')" class="bg-brand-500 hover:bg-brand-600 text-slate-900 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm" title="الخريطة">
-                            <i class="fa-solid fa-map-location-dot"></i> الخريطة
-                        </button>
+                        <div class="text-left font-extrabold text-xs text-primary">
+                            ${test.price.toLocaleString()} <span class="text-[10px] font-normal text-slate-500">ج.س</span>
+                        </div>
+                    </label>
+                `;
+            });
+        }
+
+        function updateCalculatedTotal() {
+            const checkedBoxes = document.querySelectorAll('input[name="selected_tests"]:checked');
+            let total = 0;
+            checkedBoxes.forEach(cb => {
+                const test = LAB_CATALOG.find(t => t.id === cb.value);
+                if(test) total += test.price;
+            });
+            document.getElementById('rec_calculatedTotal').innerHTML = `${total.toLocaleString()} <span class="text-xs font-normal text-slate-500">ج.س</span>`;
+            return total;
+        }
+
+        function handleCreateTicket(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('rec_patientName').value.trim();
+            const age = document.getElementById('rec_patientAge').value;
+            const gender = document.getElementById('rec_patientGender').value;
+            const phone = document.getElementById('rec_patientPhone').value;
+            const payMethod = document.getElementById('rec_paymentMethod').value;
+
+            const checkedBoxes = document.querySelectorAll('input[name="selected_tests"]:checked');
+            const selectedTestIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+            if(selectedTestIds.length === 0) {
+                showToast('الرجاء اختيار فحص طبي واحد على الأقل', 'error');
+                return;
+            }
+
+            const totalAmount = updateCalculatedTotal();
+            const newTicketNo = (1000 + state.tickets.length + 1).toString();
+            const now = new Date();
+            const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const sampleSeq = (state.tickets.length + 1).toString().padStart(2, '0');
+            const sampleId = `LR-${dateStr}-${sampleSeq}`;
+
+            const newTicket = {
+                ticketNo: newTicketNo,
+                sampleId: sampleId,
+                patientName: name,
+                age: parseInt(age),
+                gender: gender,
+                phone: phone,
+                technician: 'Hussam',
+                tests: selectedTestIds,
+                totalAmount: totalAmount,
+                payMethod: payMethod,
+                date: now.toLocaleDateString('ar-EG'),
+                time: now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                labStatus: 'pending',
+                results: {}
+            };
+
+            state.tickets.unshift(newTicket);
+
+            // Reset form
+            document.getElementById('ticketForm').reset();
+            updateCalculatedTotal();
+
+            refreshAllViews();
+            showReceiptModal(newTicket);
+            showToast('تم إصدار التذكرة بنجاح وتحويل المريض للمعمل', 'success');
+        }
+
+        function renderReceptionQueue() {
+            const container = document.getElementById('rec_queueContainer');
+            const search = (document.getElementById('rec_searchBox').value || '').toLowerCase();
+            container.innerHTML = '';
+
+            const filtered = state.tickets.filter(t => t.patientName.toLowerCase().includes(search) || t.ticketNo.includes(search));
+            document.getElementById('rec_queueCount').innerText = filtered.length;
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">لا توجد تذاكر مسجلة</p>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                const labBadge = t.labStatus === 'completed' 
+                    ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">جاهز بالمعمل</span>`
+                    : `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">بإنتظار النتيجة</span>`;
+
+                container.innerHTML += `
+                    <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-bold text-xs text-slate-800">${t.patientName}</span>
+                            <span class="font-mono text-xs font-bold text-primary">#${t.ticketNo}</span>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] text-slate-500 mb-2">
+                            <span>${t.age} سنة | ${t.gender}</span>
+                            <span>${t.totalAmount.toLocaleString()} ج.س (${t.payMethod === 'cash' ? 'كاش' : 'بنكك'})</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-1 border-t border-slate-200/60">
+                            ${labBadge}
+                            <button onclick='showReceiptModalByNo("${t.ticketNo}")' class="text-xs text-primary font-bold hover:underline">
+                                <i class="fas fa-receipt ml-1"></i> الإيصال
+                            </button>
+                        </div>
                     </div>
                 `;
-                container.appendChild(el);
             });
-
-            if (!selectedActiveOrderId || !orders.some(o => o.id === selectedActiveOrderId)) {
-                selectedActiveOrderId = orders[0].id;
-            }
-            renderDirectWorkflowContent(selectedActiveOrderId);
-            workflowPanel.classList.remove('hidden');
         }
 
-        window.selectActiveOrder = function(orderId) {
-            selectedActiveOrderId = orderId;
-            renderClientOrders();
-        };
+        function renderLabQueue() {
+            const container = document.getElementById('lab_queueContainer');
+            container.innerHTML = '';
 
-        function renderDirectWorkflowContent(orderId) {
-            const order = orders.find(o => o.id === orderId);
-            const contentEl = document.getElementById('direct-workflow-content');
-            if (!order || !contentEl) return;
+            if(state.tickets.length === 0) {
+                container.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">لا يوجد مرضى محولين للمعمل</p>`;
+                return;
+            }
 
-            let interactiveActionHTML = '';
+            state.tickets.forEach(t => {
+                const isSelected = t.ticketNo === state.selectedLabTicketNo;
+                const statusColor = t.labStatus === 'completed' ? 'border-emerald-500 bg-emerald-50/30' : 'border-amber-300 bg-amber-50/30';
 
-            if (order.status === 'بانتظار تأكيد العميل') {
-                interactiveActionHTML = `
-                    <div class="bg-amber-50 border border-amber-300 p-4 rounded-2xl space-y-3">
-                        <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-amber-200">
-                            <div class="w-10 h-10 bg-slate-900 text-brand-500 rounded-xl flex items-center justify-center font-bold">
-                                <i class="fa-solid fa-motorcycle"></i>
-                            </div>
+                container.innerHTML += `
+                    <div onclick="selectTicketForLab('${t.ticketNo}')" class="p-3.5 rounded-xl border ${isSelected ? 'border-2 border-primary bg-sky-50/80 shadow-sm' : statusColor} cursor-pointer transition">
+                        <div class="flex justify-between items-center mb-1">
+                            <h4 class="font-bold text-sm text-slate-800">${t.patientName}</h4>
+                            <span class="text-xs font-bold font-mono text-slate-500">#${t.ticketNo}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-2">${t.tests.length} فحوصات مطلوبة | ${t.time}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${t.labStatus === 'completed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                ${t.labStatus === 'completed' ? 'مكتمل ومعتمد' : 'في الانتظار'}
+                            </span>
+                            <span class="text-xs text-primary font-bold">فتح الفحص <i class="fas fa-chevron-left text-[10px]"></i></span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectTicketForLab(ticketNo) {
+            state.selectedLabTicketNo = ticketNo;
+            renderLabQueue();
+
+            const ticket = state.tickets.find(t => t.ticketNo === ticketNo);
+            if(!ticket) return;
+
+            document.getElementById('lab_emptyState').classList.add('hidden');
+            const workArea = document.getElementById('lab_activeWorkArea');
+            workArea.classList.remove('hidden');
+            workArea.classList.add('flex');
+
+            document.getElementById('lab_selectedName').innerText = ticket.patientName;
+            document.getElementById('lab_selectedTicketNo').innerText = `#${ticket.ticketNo}`;
+            document.getElementById('lab_selectedSampleId').innerText = `Sample ID: ${ticket.sampleId || 'LR-20260918-14'}`;
+            document.getElementById('lab_selectedAgeGender').innerText = `${ticket.age} سنة / ${ticket.gender}`;
+            document.getElementById('lab_selectedPhone').innerText = ticket.phone || 'غير مدخل';
+            document.getElementById('lab_technicianInput').value = ticket.technician || 'Hussam';
+
+            // Render inputs for tests
+            const fieldsContainer = document.getElementById('lab_testFieldsContainer');
+            fieldsContainer.innerHTML = '';
+
+            ticket.tests.forEach(testId => {
+                const catalogItem = LAB_CATALOG.find(c => c.id === testId);
+                if(!catalogItem) return;
+
+                let fieldsHTML = '';
+                catalogItem.fields.forEach(field => {
+                    const existingVal = (ticket.results && ticket.results[field.id] !== undefined) ? ticket.results[field.id] : '';
+
+                    if(field.type === 'select') {
+                        const optionsHTML = field.options.map(opt => `<option value="${opt}" ${existingVal === opt ? 'selected' : ''}>${opt}</option>`).join('');
+                        fieldsHTML += `
                             <div>
-                                <span class="text-[10px] text-slate-500 block font-bold">الكابتن المسؤول:</span>
-                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm">${order.driverName}</h4>
-                                <p class="text-[11px] text-slate-600">${order.driverBike} • لوحة: ${order.driverPlate}</p>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">${field.label}</label>
+                                <select data-field="${field.id}" class="lab-input w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white font-mono font-bold">
+                                    ${optionsHTML}
+                                </select>
                             </div>
-                        </div>
-                        <p class="text-xs font-bold text-amber-900">وافق الكابتن على طلبك! هل تؤكد انطلاق الطلبية أم ترغب في الإلغاء؟</p>
-                        <div class="flex gap-2">
-                            <button onclick="confirmClientStart('${order.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-check"></i> تأكيد الانطلاق
-                            </button>
-                            <button onclick="confirmClientCancel('${order.id}')" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-ban"></i> إلغاء الطلب
-                            </button>
+                        `;
+                    } else {
+                        fieldsHTML += `
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">${field.label} ${field.unit ? `(${field.unit})` : ''}</label>
+                                <input type="text" data-field="${field.id}" value="${existingVal}" placeholder="${field.normal ? `المعدل: ${field.normal}` : ''}" class="lab-input w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:border-primary outline-none font-mono font-bold">
+                            </div>
+                        `;
+                    }
+                });
+
+                fieldsContainer.innerHTML += `
+                    <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center justify-between border-b pb-2">
+                            <span><i class="fas fa-flask text-teal-600 ml-2"></i>${catalogItem.name}</span>
+                            <span class="text-[11px] font-normal bg-teal-100 text-teal-800 px-2.5 py-0.5 rounded-full font-mono">${catalogItem.category}</span>
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            ${fieldsHTML}
                         </div>
                     </div>
                 `;
-            } else if (order.status === 'موافق للبدء (جاهز للحركة)' || order.status === 'جاري التوصيل' || order.status === 'الكابتن وصل الموقع') {
-                let paymentBlock = '';
-                if (order.status === 'الكابتن وصل الموقع') {
-                    paymentBlock = `
-                        <div class="bg-brand-50 border border-brand-500 p-4 rounded-2xl space-y-3 mt-3">
-                            <div class="flex justify-between items-center text-xs font-bold text-slate-800">
-                                <span>اختر طريقة دفع أجرة التوصيل (بعد الاستلام):</span>
-                                <span class="text-brand-700 font-black">${order.price}</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-                                <label class="cursor-pointer border-2 border-brand-500 bg-white p-2.5 rounded-xl flex items-center gap-2 text-slate-900">
-                                    <input type="radio" name="client_payment_direct_${order.id}" value="نقداً" checked class="text-brand-600">
-                                    <i class="fa-solid fa-money-bill-wave text-brand-600"></i> نقداً للكابتن
-                                </label>
-                                <label class="cursor-pointer border-2 border-slate-200 bg-white p-2.5 rounded-xl flex items-center gap-2 text-slate-700">
-                                    <input type="radio" name="client_payment_direct_${order.id}" value="بنكك / تحويل" class="text-brand-600">
-                                    <i class="fa-solid fa-mobile-screen text-blue-600"></i> تحويل بنكك
-                                </label>
-                            </div>
-                            <button onclick="confirmPaymentAndComplete('${order.id}')" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-900 py-3 rounded-xl font-black text-xs transition flex items-center justify-center gap-1.5 shadow">
-                                <i class="fa-solid fa-circle-check"></i> تأكيد دفع مبلغ التوصيل وإتمام الطلبية
-                            </button>
-                        </div>
-                    `;
-                }
-
-                interactiveActionHTML = `
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200">
-                            <div class="flex items-center gap-2">
-                                <div class="w-9 h-9 bg-slate-900 text-brand-500 rounded-lg flex items-center justify-center font-bold text-xs">
-                                    <i class="fa-solid fa-motorcycle"></i>
-                                </div>
-                                <div>
-                                    <span class="text-[10px] text-slate-500 block font-bold">الكابتن: ${order.driverName}</span>
-                                    <span class="text-[11px] text-slate-700 font-bold">${order.driverBike} • لوحة: ${order.driverPlate}</span>
-                                </div>
-                            </div>
-                            <a href="tel:${order.driverPhone}" class="bg-brand-500 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-phone"></i> اتصال
-                            </a>
-                        </div>
-                        <div class="text-xs bg-indigo-50 text-indigo-900 p-3 rounded-xl font-bold border border-indigo-200 text-center">
-                            ${order.status === 'الكابتن وصل الموقع' ? '📍 وصل الكابتن إلى وجهة التوصيل!' : order.status === 'موافق للبدء (جاهز للحركة)' ? '✅ تم تأكيد الانطلاق - الكابتن يستعد للحركة' : '🏍️ الكابتن في طريقه إليك الآن...'}
-                        </div>
-                        ${paymentBlock}
-                    </div>
-                `;
-            } else if (order.status === 'تم توصيل الطلب بنجاح') {
-                interactiveActionHTML = `
-                    <div class="bg-emerald-50 border border-emerald-300 p-3 rounded-xl text-emerald-800 text-xs font-bold text-center">
-                        ✔ تم إتمام الطلبية ودفع الأجرة بنجاح. شكراً لاستخدامك واصلك سريع!
-                    </div>
-                `;
-            } else if (order.status === 'تم إلغاء الطلب') {
-                interactiveActionHTML = `
-                    <div class="bg-rose-50 border border-rose-300 p-3 rounded-xl text-rose-800 text-xs font-bold text-center">
-                        ❌ تم إلغاء هذا الطلب.
-                    </div>
-                `;
-            } else {
-                interactiveActionHTML = `
-                    <div class="bg-slate-100 p-3 rounded-xl text-slate-600 text-xs font-bold text-center">
-                        ⏳ جاري البحث عن أقرب كابتن متاح في الشبكة...
-                    </div>
-                `;
-            }
-
-            contentEl.innerHTML = `
-                <div class="space-y-3">
-                    <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-2">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-slate-500">رقم الطلب: <strong class="text-slate-900">${order.id}</strong></span>
-                            <span class="bg-brand-100 text-slate-900 font-bold px-2.5 py-1 rounded-full">${order.status}</span>
-                        </div>
-                        <p class="font-bold text-slate-900 text-sm">${order.desc}</p>
-                        <div class="text-xs text-slate-600 space-y-1 pt-1 border-t border-slate-200">
-                            <p><strong>من (الاستلام):</strong> ${order.pickup}</p>
-                            <p><strong>إلى (التوصيل):</strong> ${order.dropoff}</p>
-                            <p><strong>الأجرة:</strong> <span class="text-brand-700 font-bold">${order.price}</span></p>
-                        </div>
-                    </div>
-                    ${interactiveActionHTML}
-                </div>
-            `;
-        }
-
-        window.openOrderModal = function(orderId) {
-            selectedActiveOrderId = orderId;
-            const order = orders.find(o => o.id === orderId);
-            const modal = document.getElementById('order-modal');
-            const titleEl = document.getElementById('modal-order-title');
-            const bodyEl = document.getElementById('modal-order-body');
-
-            if (!order) return;
-
-            titleEl.innerText = `خريطة تتبع الطلب: ${order.id}`;
-
-            bodyEl.innerHTML = `
-                <div class="space-y-4">
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
-                        <span class="font-bold text-slate-700">${order.desc}</span>
-                        <span class="text-brand-700 font-black">${order.price}</span>
-                    </div>
-                    <div>
-                        <div class="h-64 bg-[#e5e3df] rounded-2xl relative overflow-hidden border border-slate-300 flex items-center justify-center shadow-inner">
-                            <div class="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px]"></div>
-                            <svg class="absolute inset-0 w-full h-full stroke-[#1a73e8] stroke-[4] fill-none z-10" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M 40 120 Q 200 20, 360 120" stroke-linecap="round" stroke-dasharray="6" />
-                            </svg>
-                            <div class="absolute top-[45%] left-[15%] transform -translate-x-1/2 -translate-y-1/2 z-20 text-center">
-                                <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs shadow-md">
-                                    <i class="fa-solid fa-store"></i>
-                                </div>
-                                <span class="text-[9px] bg-white px-1.5 py-0.5 rounded font-bold text-slate-800 shadow mt-1 inline-block">الاستلام</span>
-                            </div>
-                            <div class="absolute top-[45%] left-[85%] transform -translate-x-1/2 -translate-y-1/2 z-20 text-center">
-                                <div class="w-8 h-8 bg-rose-600 text-white rounded-full flex items-center justify-center text-xs shadow-md">
-                                    <i class="fa-solid fa-house"></i>
-                                </div>
-                                <span class="text-[9px] bg-white px-1.5 py-0.5 rounded font-bold text-slate-800 shadow mt-1 inline-block">الوجهة</span>
-                            </div>
-                            <div class="absolute ${order.status === 'جاري التوصيل' || order.status === 'الكابتن وصل الموقع' || order.status === 'تم توصيل الطلب بنجاح' ? 'top-[45%] left-[85%]' : 'top-[45%] left-[15%]' } transform -translate-x-1/2 -translate-y-1/2 transition-all duration-1000 z-30">
-                                <div class="w-9 h-9 bg-brand-500 text-slate-900 rounded-full flex items-center justify-center text-sm shadow-xl font-bold border-2 border-white">
-                                    <i class="fa-solid fa-motorcycle"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        };
-
-        window.closeOrderModal = function() {
-            const modal = document.getElementById('order-modal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        };
-
-        window.openSupportModal = function() {
-            const modal = document.getElementById('support-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        };
-
-        window.closeSupportModal = function() {
-            const modal = document.getElementById('support-modal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        };
-
-        function renderDriverOrders() {
-            const container = document.getElementById('driver-orders-list');
-            if (!container) return;
-            const driverOrders = orders.filter(o => o.status !== 'تم إلغاء الطلب');
-
-            if (driverOrders.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 font-medium text-xs sm:text-sm">لا توجد طلبات جديدة في السحابة حالياً.</div>`;
-                return;
-            }
-
-            container.innerHTML = '';
-            driverOrders.forEach(order => {
-                const el = document.createElement('div');
-                el.className = 'p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 shadow-sm text-right';
-                
-                let actionBtnHTML = '';
-                if (order.status === 'بانتظار قبول السائق') {
-                    actionBtnHTML = `
-                        <button onclick="driverStepAccept('${order.id}')" class="w-full bg-brand-500 hover:bg-brand-600 text-slate-900 font-bold py-3 rounded-xl shadow-md transition text-center text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-check-circle"></i> 1. استلام الطلبية
-                        </button>
-                    `;
-                } else if (order.status === 'بانتظار تأكيد العميل') {
-                    actionBtnHTML = `<div class="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl font-bold text-center border border-amber-200">بانتظار تأكيد العميل لتتمكن من الحركة...</div>`;
-                } else if (order.status === 'موافق للبدء (جاهز للحركة)') {
-                    actionBtnHTML = `
-                        <button onclick="driverStepOnTheWay('${order.id}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition text-center text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-motorcycle"></i> 2. أنا في الطريق
-                        </button>
-                    `;
-                } else if (order.status === 'جاري التوصيل') {
-                    actionBtnHTML = `
-                        <button onclick="driverStepArrived('${order.id}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition text-center text-xs sm:text-sm flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-location-arrow"></i> 3. أنا وصلت
-                        </button>
-                    `;
-                } else if (order.status === 'الكابتن وصل الموقع') {
-                    actionBtnHTML = `<div class="text-xs text-indigo-700 bg-indigo-50 p-2.5 rounded-xl font-bold text-center border border-indigo-200">وصلت الموقع - بانتظار دفع العميل وإتمام الطلب</div>`;
-                } else if (order.status === 'تم توصيل الطلب بنجاح') {
-                    actionBtnHTML = `<div class="text-xs text-emerald-700 bg-emerald-50 p-2.5 rounded-xl font-bold text-center border border-emerald-200">تم إتمام الطلب وتحصيل الأجرة بنجاح ✔</div>`;
-                }
-
-                el.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <span class="font-black text-slate-900 text-base sm:text-lg">${order.id}</span>
-                        <span class="bg-brand-500 text-slate-900 font-bold px-3 py-1 rounded-full text-xs sm:text-sm">${order.price}</span>
-                    </div>
-                    <div class="space-y-1.5 text-xs sm:text-sm">
-                        <p class="font-bold text-slate-900"><span class="bg-brand-100 text-slate-900 px-2 py-0.5 rounded text-[11px] ml-1">${order.category}</span> ${order.desc}</p>
-                        <p class="text-slate-600"><strong class="text-slate-900">من:</strong> ${order.pickup}</p>
-                        <p class="text-slate-600"><strong class="text-slate-900">إلى:</strong> ${order.dropoff}</p>
-                        <div class="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-200 mt-2">
-                            <span class="text-slate-700 font-bold"><i class="fa-solid fa-phone text-brand-600 ml-1"></i> رقم العميل: <strong class="text-slate-900">${order.phone}</strong></span>
-                            <a href="tel:${order.phone}" class="bg-brand-500 hover:bg-brand-600 text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1">
-                                <i class="fa-solid fa-phone-volume"></i> اتصال بالعميل
-                            </a>
-                        </div>
-                        <p class="text-slate-600 pt-1"><strong class="text-slate-900">الحالة:</strong> <span class="text-brand-700 font-bold">${order.status}</span></p>
-                    </div>
-                    ${actionBtnHTML}
-                `;
-                container.appendChild(el);
             });
         }
 
-        window.driverStepAccept = async function(orderId) {
-            try {
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'بانتظار تأكيد العميل' });
-                showToast(`تم قبول الطلب ${orderId}! في انتظار تأكيد العميل.`);
-            } catch (err) {
-                console.error(err);
-                showToast('خطأ في الاتصال السحابي');
-            }
-        };
+        function saveLabResults() {
+            if(!state.selectedLabTicketNo) return;
 
-        window.driverStepOnTheWay = async function(orderId) {
-            try {
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'جاري التوصيل' });
-                showToast('أنت الآن في الطريق إلى وجهة التوصيل.');
-            } catch (err) {
-                console.error(err);
-            }
-        };
+            const ticket = state.tickets.find(t => t.ticketNo === state.selectedLabTicketNo);
+            if(!ticket) return;
 
-        window.driverStepArrived = async function(orderId) {
-            try {
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'الكابتن وصل الموقع' });
-                showToast('تم إعلام العميل بوصولك إلى الموقع!');
-            } catch (err) {
-                console.error(err);
-            }
-        };
+            const inputs = document.querySelectorAll('.lab-input');
+            const resultsObj = {};
 
-        window.confirmClientStart = async function(orderId) {
-            try {
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'موافق للبدء (جاهز للحركة)' });
-                showToast('تم تأكيد انطلاق الطلبية!');
-            } catch (err) {
-                console.error(err);
-            }
-        };
+            inputs.forEach(input => {
+                const fieldId = input.getAttribute('data-field');
+                if(fieldId) {
+                    resultsObj[fieldId] = input.value;
+                }
+            });
 
-        window.confirmClientCancel = async function(orderId) {
-            try {
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'تم إلغاء الطلب' });
-                showToast('تم إلغاء الطلب.');
-            } catch (err) {
-                console.error(err);
-            }
-        };
+            ticket.results = resultsObj;
+            ticket.technician = document.getElementById('lab_technicianInput').value || 'Hussam';
+            ticket.labStatus = 'completed';
 
-        window.confirmPaymentAndComplete = async function(orderId) {
-            try {
-                const paymentInput = document.querySelector(`input[name="client_payment_direct_${orderId}"]:checked`);
-                const selectedPayment = paymentInput ? paymentInput.value : 'نقداً';
-                const orderRef = doc(db, 'artifacts', appId, 'public', 'data', 'orders', orderId);
-                await updateDoc(orderRef, { status: 'تم توصيل الطلب بنجاح', paymentMethod: selectedPayment });
-                showToast(`تم دفع مبلغ التوصيل (${selectedPayment}) وإتمام الطلبية بنجاح!`);
-            } catch (err) {
-                console.error(err);
-            }
-        };
+            refreshAllViews();
+            showToast('تم حفظ نتائج الفحوصات الطبية بنجاح', 'success');
+        }
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            const messageEl = document.getElementById('toast-message');
-            if (!toast || !messageEl) return;
+        function renderAccounts() {
+            let totalRev = 0;
+            let cashRev = 0;
+            let bankakRev = 0;
+
+            state.tickets.forEach(t => {
+                totalRev += t.totalAmount;
+                if(t.payMethod === 'cash') cashRev += t.totalAmount;
+                else bankakRev += t.totalAmount;
+            });
+
+            let totalExp = 0;
+            state.expenses.forEach(e => totalExp += e.amount);
+
+            const netProfit = totalRev - totalExp;
+
+            document.getElementById('acc_totalRevenue').innerHTML = `${totalRev.toLocaleString()} <span class="text-xs font-normal">ج.س</span>`;
+            document.getElementById('acc_cashTotal').innerText = `${cashRev.toLocaleString()} ج.س`;
+            document.getElementById('acc_bankakTotal').innerText = `${bankakRev.toLocaleString()} ج.س`;
+            document.getElementById('acc_totalExpenses').innerHTML = `${totalExp.toLocaleString()} <span class="text-xs font-normal">ج.س</span>`;
+            document.getElementById('acc_netProfit').innerHTML = `${netProfit.toLocaleString()} <span class="text-xs font-normal">ج.س</span>`;
+
+            // Income Table
+            const incTable = document.getElementById('acc_incomeTableBody');
+            incTable.innerHTML = '';
+            document.getElementById('acc_incomeCount').innerText = state.tickets.length;
+
+            state.tickets.forEach(t => {
+                const testNames = t.tests.map(id => {
+                    const item = LAB_CATALOG.find(c => c.id === id);
+                    return item ? item.name : id;
+                }).join(' ، ');
+
+                incTable.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-mono font-bold text-primary">#${t.ticketNo}</td>
+                        <td class="p-3 font-bold">${t.patientName}</td>
+                        <td class="p-3 text-xs text-slate-600">${testNames}</td>
+                        <td class="p-3 text-xs"><span class="px-2 py-0.5 rounded-full font-bold ${t.payMethod === 'cash' ? 'bg-emerald-100 text-emerald-800' : 'bg-purple-100 text-purple-800'}">${t.payMethod === 'cash' ? 'نقداً (كاش)' : 'بنكك'}</span></td>
+                        <td class="p-3 font-bold text-slate-800">${t.totalAmount.toLocaleString()} ج.س</td>
+                        <td class="p-3 text-center">
+                            <button onclick="showReceiptModalByNo('${t.ticketNo}')" class="text-xs text-primary font-bold hover:underline"><i class="fas fa-print"></i> الإيصال</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Expenses Table
+            const expTable = document.getElementById('acc_expensesTableBody');
+            expTable.innerHTML = '';
+            document.getElementById('acc_expenseCount').innerText = state.expenses.length;
+
+            state.expenses.forEach(e => {
+                expTable.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-bold">${e.title}</td>
+                        <td class="p-3 text-xs"><span class="bg-slate-100 px-2 py-0.5 rounded-full">${e.category}</span></td>
+                        <td class="p-3 font-bold text-red-600">${e.amount.toLocaleString()} ج.س</td>
+                        <td class="p-3 text-xs text-slate-500">${e.date} (${e.time})</td>
+                        <td class="p-3 text-xs text-slate-500">${e.user}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function switchAccTab(tab) {
+            document.getElementById('tabBtn_income').className = tab === 'income' ? 'font-bold text-sm px-4 py-2 text-primary border-b-2 border-primary' : 'font-bold text-sm px-4 py-2 text-slate-500 hover:text-slate-800';
+            document.getElementById('tabBtn_expenses').className = tab === 'expenses' ? 'font-bold text-sm px-4 py-2 text-primary border-b-2 border-primary' : 'font-bold text-sm px-4 py-2 text-slate-500 hover:text-slate-800';
+
+            document.getElementById('acc_tab_income').classList.toggle('hidden', tab !== 'income');
+            document.getElementById('acc_tab_expenses').classList.toggle('hidden', tab !== 'expenses');
+        }
+
+        function handleAddExpense(e) {
+            e.preventDefault();
+            const title = document.getElementById('exp_title').value;
+            const category = document.getElementById('exp_category').value;
+            const amount = parseFloat(document.getElementById('exp_amount').value);
+            const now = new Date();
+
+            state.expenses.unshift({
+                id: 'E-' + (state.expenses.length + 1),
+                title: title,
+                category: category,
+                amount: amount,
+                date: now.toLocaleDateString('ar-EG'),
+                time: now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                user: state.currentUser ? state.currentUser.name : 'المحاسب'
+            });
+
+            closeModal('expenseModal');
+            document.getElementById('exp_title').value = '';
+            document.getElementById('exp_amount').value = '';
+
+            refreshAllViews();
+            showToast('تم تسجيل المصروف بنجاح', 'success');
+        }
+
+        function renderDashboard() {
+            document.getElementById('dash_totalTickets').innerText = state.tickets.length;
+
+            let labCount = 0;
+            let pendingLab = 0;
+            let totalRev = 0;
+            let cashRev = 0;
+            let bankakRev = 0;
+
+            state.tickets.forEach(t => {
+                labCount += t.tests.length;
+                if(t.labStatus === 'pending') pendingLab++;
+                totalRev += t.totalAmount;
+                if(t.payMethod === 'cash') cashRev += t.totalAmount;
+                else bankakRev += t.totalAmount;
+            });
+
+            let totalExp = 0;
+            state.expenses.forEach(e => totalExp += e.amount);
+
+            document.getElementById('dash_totalLabTests').innerText = labCount;
+            document.getElementById('dash_pendingLabCount').innerText = `${pendingLab} في الانتظار`;
+            document.getElementById('dash_totalRevenue').innerHTML = `${totalRev.toLocaleString()} <span class="text-xs font-normal">ج.س</span>`;
+            document.getElementById('dash_payMethodBreakdown').innerText = `${cashRev.toLocaleString()} كاش | ${bankakRev.toLocaleString()} بنكك`;
+            document.getElementById('dash_totalExpenses').innerHTML = `${totalExp.toLocaleString()} <span class="text-xs font-normal">ج.س</span>`;
+
+            // Recent Table
+            const recentBody = document.getElementById('dash_recentTable');
+            recentBody.innerHTML = '';
+
+            state.tickets.slice(0, 5).forEach(t => {
+                const labBadge = t.labStatus === 'completed' 
+                    ? `<span class="text-emerald-600 font-bold text-xs"><i class="fas fa-check-circle ml-1"></i>مكتمل</span>`
+                    : `<span class="text-amber-500 font-bold text-xs"><i class="fas fa-clock ml-1"></i>بانتظار المعمل</span>`;
+
+                recentBody.innerHTML += `
+                    <tr>
+                        <td class="py-3 font-mono font-bold text-primary">#${t.ticketNo}</td>
+                        <td class="py-3 font-bold text-slate-800">${t.patientName}</td>
+                        <td class="py-3 text-xs text-slate-500">${t.tests.length} فحوصات</td>
+                        <td class="py-3 font-bold text-slate-700">${t.totalAmount.toLocaleString()} ج.س</td>
+                        <td class="py-3">${labBadge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function showReceiptModalByNo(ticketNo) {
+            const ticket = state.tickets.find(t => t.ticketNo === ticketNo);
+            if(ticket) showReceiptModal(ticket);
+        }
+
+        function showReceiptModal(ticket) {
+            document.getElementById('recModal_ticketNo').innerText = `#${ticket.ticketNo}`;
+            document.getElementById('recModal_name').innerText = ticket.patientName;
+            document.getElementById('recModal_ageGender').innerText = `${ticket.age} سنة / ${ticket.gender}`;
+            document.getElementById('recModal_date').innerText = `${ticket.date} - ${ticket.time}`;
+            document.getElementById('recModal_payMethod').innerText = ticket.payMethod === 'cash' ? 'نقداً (كاش)' : 'تطبيق بنكك الإلكتروني';
+
+            const testsList = document.getElementById('recModal_testsList');
+            testsList.innerHTML = '';
+            ticket.tests.forEach(id => {
+                const item = LAB_CATALOG.find(c => c.id === id);
+                if(item) {
+                    testsList.innerHTML += `<li>${item.name} - <strong>${item.price.toLocaleString()} ج.س</strong></li>`;
+                }
+            });
+
+            document.getElementById('recModal_total').innerText = `${ticket.totalAmount.toLocaleString()} ج.س`;
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function printLabReport() {
+            if(!state.selectedLabTicketNo) return;
+            const ticket = state.tickets.find(t => t.ticketNo === state.selectedLabTicketNo);
+            if(!ticket) return;
+
+            const sampleId = ticket.sampleId || `LR-20260918-${ticket.ticketNo}`;
+            const technician = ticket.technician || 'Hussam';
+
+            document.getElementById('report_date').innerText = `التاريخ: ${ticket.date}`;
+            document.getElementById('report_sampleId').innerText = `Sample ID: ${sampleId}`;
+            document.getElementById('report_patientName').innerText = ticket.patientName;
+            document.getElementById('report_ticketNo').innerText = `#${ticket.ticketNo}`;
+            document.getElementById('report_ageGender').innerText = `${ticket.age} سنة / ${ticket.gender}`;
+            document.getElementById('report_sampleIdDetail').innerText = sampleId;
+            document.getElementById('report_technician').innerText = technician;
+            document.getElementById('report_footerTechnician').innerText = technician;
+
+            const container = document.getElementById('report_resultsContainer');
+            container.innerHTML = '';
+
+            ticket.tests.forEach(testId => {
+                const catalog = LAB_CATALOG.find(c => c.id === testId);
+                if(!catalog) return;
+
+                let rows = '';
+                catalog.fields.forEach(field => {
+                    const val = (ticket.results && ticket.results[field.id] !== undefined && ticket.results[field.id] !== '') ? ticket.results[field.id] : 'N/A';
+                    
+                    // Auto calculate flags (Low / High / Normal)
+                    const flagInfo = calculateLabFlag(val, field.normal);
+
+                    rows += `
+                        <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <td class="py-1.5 px-2 font-bold text-slate-800 text-xs">${field.label}</td>
+                            <td class="py-1.5 px-2 font-black text-teal-800 text-sm font-mono">${val}</td>
+                            <td class="py-1.5 px-2"><span class="${flagInfo.class}">${flagInfo.text}</span></td>
+                            <td class="py-1.5 px-2 text-slate-600 text-xs font-mono">${field.unit || '-'}</td>
+                            <td class="py-1.5 px-2 text-slate-500 text-xs font-mono">${field.normal ? field.normal : '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div class="border border-slate-200 rounded-xl p-4 bg-white shadow-sm">
+                        <h4 class="font-bold text-teal-900 text-sm mb-3 pb-2 border-b-2 border-teal-500 flex justify-between items-center">
+                            <span>${catalog.name}</span>
+                            <span class="text-xs bg-teal-50 text-teal-700 px-2.5 py-1 rounded-md font-mono">${catalog.category}</span>
+                        </h4>
+                        <table class="w-full text-right text-xs">
+                            <thead>
+                                <tr class="text-slate-400 bg-slate-50 border-b border-slate-200">
+                                    <th class="py-1.5 px-2 text-right">الفحص (Test)</th>
+                                    <th class="py-1.5 px-2 text-right">النتيجة (Result)</th>
+                                    <th class="py-1.5 px-2 text-right">المؤشر (Flag)</th>
+                                    <th class="py-1.5 px-2 text-right">الوحدة (Unit)</th>
+                                    <th class="py-1.5 px-2 text-right">المعدل الطبيعي (Normal Range)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${rows}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+
+            document.getElementById('labReportModal').classList.remove('hidden');
+        }
+
+        function calculateLabFlag(valStr, normalStr) {
+            if(!valStr || !normalStr || valStr === 'N/A' || normalStr === '-') return { text: '-', class: 'text-slate-400 text-xs' };
             
-            messageEl.innerText = message;
-            toast.classList.remove('translate-y-28', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
+            const cleanVal = valStr.trim();
+            const cleanNorm = normalStr.trim();
+
+            // Direct match (e.g. Clear == Clear, Nil == Nil, Acidic == Acidic, Yellow == Yellow)
+            if(cleanVal.toLowerCase() === cleanNorm.toLowerCase()) {
+                return { text: 'Normal', class: 'text-emerald-600 font-medium text-[10px]' };
+            }
+
+            // Normal indicates "Nil" or "Negative"
+            if(cleanNorm.toUpperCase() === 'NIL' || cleanNorm.toUpperCase() === 'NEGATIVE') {
+                if(cleanVal.includes('+') || (cleanVal.toUpperCase() !== 'NIL' && cleanVal.toUpperCase() !== 'NEGATIVE' && cleanVal !== '-')) {
+                    return { text: 'Abnormal (غير طبيعي)', class: 'bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded text-[10px]' };
+                }
+                return { text: 'Normal', class: 'text-emerald-600 font-medium text-[10px]' };
+            }
+
+            if(cleanNorm.toUpperCase().includes('NEGATIVE') || cleanNorm.toUpperCase().includes('NO MALARIA')) {
+                if(cleanVal.toUpperCase().includes('SEEN') && !cleanVal.toUpperCase().includes('NO MALARIA')) {
+                    return { text: 'POSITIVE (موجب)', class: 'bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-[10px]' };
+                }
+                return { text: 'Normal', class: 'text-emerald-600 font-medium text-[10px]' };
+            }
+
+            // Numeric or Range check (e.g., "4-6" vs "0 – 5")
+            let num = parseFloat(cleanVal);
+            if(isNaN(num) && cleanVal.includes('-')) {
+                const partsVal = cleanVal.split('-').map(p => parseFloat(p.trim())).filter(p => !isNaN(p));
+                if(partsVal.length > 0) num = Math.max(...partsVal);
+            }
+
+            if(!isNaN(num)) {
+                const parts = cleanNorm.split(/–|-/).map(p => parseFloat(p.trim())).filter(p => !isNaN(p));
+                if(parts.length === 2) {
+                    const [low, high] = parts;
+                    if(num < low) {
+                        return { text: 'L (منخفض)', class: 'bg-amber-100 text-amber-800 font-bold px-1.5 py-0.5 rounded text-[10px]' };
+                    } else if(num > high) {
+                        return { text: 'H (مرتفع)', class: 'bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded text-[10px]' };
+                    } else {
+                        return { text: 'Normal', class: 'text-emerald-600 font-medium text-[10px]' };
+                    }
+                }
+            }
+
+            return { text: 'Remark', class: 'bg-slate-100 text-slate-700 font-medium px-1.5 py-0.5 rounded text-[10px]' };
+        }
+
+        function openExpenseModal() {
+            document.getElementById('expenseModal').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function printDailyFinancialReport() {
+            window.print();
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            let bg = 'bg-slate-800';
+            let icon = 'fa-info-circle';
+            if(type === 'success') { bg = 'bg-emerald-600'; icon = 'fa-check-circle'; }
+            if(type === 'error') { bg = 'bg-red-500'; icon = 'fa-exclamation-circle'; }
+
+            toast.className = `${bg} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 text-xs font-bold fade-in`;
+            toast.innerHTML = `<i class="fas ${icon} text-sm"></i> <span>${msg}</span>`;
+
+            container.appendChild(toast);
 
             setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-28', 'opacity-0');
-            }, 3500);
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
-
-        // Promotional Banner Carousel Logic
-        let currentPromoIndex = 0;
-        const totalPromoSlides = 3;
-
-        window.switchPromoSlide = function(index) {
-            currentPromoIndex = index;
-            const slides = document.querySelectorAll('.promo-slide');
-            const dots = document.querySelectorAll('[data-dot]');
-
-            slides.forEach((slide, idx) => {
-                if (idx === currentPromoIndex) {
-                    slide.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-                    slide.classList.add('opacity-100', 'translate-y-0');
-                } else {
-                    slide.classList.remove('opacity-100', 'translate-y-0');
-                    slide.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-                }
-            });
-
-            dots.forEach((dot, idx) => {
-                if (idx === currentPromoIndex) {
-                    dot.className = 'w-5 h-2.5 rounded-full bg-brand-500 transition-all shadow';
-                } else {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-slate-600 transition-all shadow';
-                }
-            });
-        };
-
-        function startPromoCarousel() {
-            setInterval(() => {
-                currentPromoIndex = (currentPromoIndex + 1) % totalPromoSlides;
-                switchPromoSlide(currentPromoIndex);
-            }, 5000);
-        }
-
-        // Initialize Cloud Sync and Carousel on load
-        window.onload = function() {
-            initFirebase();
-            startPromoCarousel();
-        };
     </script>
 </body>
 </html>
